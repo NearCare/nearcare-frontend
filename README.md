@@ -87,3 +87,76 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `/` | Landing page with hero and feature overview |
 | `/login` | Authentication page (email/password + Google OAuth) |
 | `/dashboard` | Full health dashboard with charts and appointments |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | [Next.js 16](https://nextjs.org) (App Router) |
+| UI Library | [React 19](https://react.dev) |
+| Language | [TypeScript 5](https://www.typescriptlang.org) |
+| Styling | [Tailwind CSS 4](https://tailwindcss.com) |
+| Charts | [Chart.js 4](https://www.chartjs.org) via [react-chartjs-2](https://react-chartjs-2.js.org) |
+| Font | [DM Sans](https://fonts.google.com/specimen/DM+Sans) via `next/font` |
+
+---
+
+## Project Structure
+
+```
+nearcare-frontend/
+├── app/
+│   ├── layout.tsx          # Root layout — DM Sans font, global CSS vars
+│   ├── globals.css         # CSS custom properties and base styles
+│   ├── page.tsx            # Landing page with hero, features, CTA
+│   ├── login/
+│   │   └── page.tsx        # Split-panel login with Google OAuth
+│   └── dashboard/
+│       └── page.tsx        # Health dashboard with Chart.js visualisations
+├── public/
+│   ├── screenshots/        # App screenshots used in README
+│   └── *.svg               # Static assets
+├── next.config.ts
+├── tailwind.config.ts
+└── tsconfig.json
+```
+
+---
+
+## Features
+
+### Dashboard
+- **Stat cards** — daily steps, calories burned, and appointment count, each with a progress bar and goal indicator
+- **Steps Overview** — weekly bar chart highlighting the best day
+- **Activity Summary** — doughnut chart showing percentage of daily goal reached across steps, active time, and calories
+- **Appointments Today** — list view with distance, time slot, and status badge (Done / Upcoming / Pending), plus a quick-book action
+- **Progress & Trends** — line charts for weekly step average and appointment frequency
+
+### Authentication
+- Email / password login with show/hide password toggle
+- Google OAuth sign-in button
+- "Remember me" and "Forgot password" flows
+- Link back to landing page
+
+### Landing Page
+- Hero section with live dashboard mockup rendered entirely in React/SVG — no images required
+- Feature grid: Track Health, Beautiful Insights, Set Goals, Celebrate Progress, Secure & Private
+- Trust badge ("Trusted by 10,000+ families") and CTA strip
+
+---
+
+## Contributing
+
+1. Fork the repo and create a feature branch: `git checkout -b feat/your-feature`
+2. Make your changes and commit with a descriptive message
+3. Open a pull request — describe what changed and why
+
+Please keep PRs focused. One feature or fix per PR makes review faster.
+
+---
+
+<div align="center">
+Made with ❤️ by the NearCare team
+</div>
