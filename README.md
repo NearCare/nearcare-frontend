@@ -30,3 +30,16 @@ Key highlights:
 - **Private & secure** — your health data stays yours; no third-party sharing
 
 > Trusted by 10,000+ families
+
+---
+
+## Screenshots
+
+### Landing Page
+![Landing page — hero section with dashboard mockup](public/screenshots/landing.png)
+
+### Login
+![Login page — split-panel authentication form](public/screenshots/login.png)
+
+### Dashboard
+![Dashboard — health stats, charts, and appointment tracker](public/screenshots/dashboard.png)
