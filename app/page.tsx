@@ -364,46 +364,99 @@ export default function LandingPage() {
 
       {/* Features */}
       <section style={{ background: "#FFF8F7", padding: "52px 60px 60px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{
-              fontSize: 22, fontWeight: 700, textAlign: "center", color: "#1A2744",
-              marginBottom: 28, display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+        <div style={{
+          fontSize: 22, fontWeight: 700, textAlign: "center", color: "#1A2744",
+          marginBottom: 32, display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+        }}>
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#E85C5C" strokeWidth="1.5">
+            <path d="M10 17s-7-4.5-7-9a5 5 0 0 1 7-4.58A5 5 0 0 1 17 8c0 4.5-7 9-7 9z" />
+          </svg>
+          Everything you need to build healthy habits
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#E85C5C" strokeWidth="1.5">
+            <path d="M10 17s-7-4.5-7-9a5 5 0 0 1 7-4.58A5 5 0 0 1 17 8c0 4.5-7 9-7 9z" />
+          </svg>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
+          {[
+            { bg: "#E6F9EE", icon: "💬", title: "Track Health", desc: "Log vitals, steps and appointments easily from anywhere, anytime." },
+            { bg: "#FFEDEC", icon: "📊", title: "Beautiful Insights", desc: "Visualize your progress with easy-to-understand charts and summaries." },
+            { bg: "#EBF3FF", icon: "🎯", title: "Set Goals", desc: "Set daily goals for steps, meals and activity. We'll help you stay on track." },
+            { bg: "#FFF8E0", icon: "🏆", title: "Celebrate Progress", desc: "Earn achievements and stay motivated every step of the way." },
+            { bg: "#F0EEFF", icon: "🔒", title: "Secure & Private", desc: "Your data is encrypted and never shared with anyone." },
+          ].map((f) => (
+            <div key={f.title} style={{
+              background: "#fff", borderRadius: 14, padding: "20px 14px", textAlign: "center",
+              boxShadow: "0 2px 12px rgba(26,20,20,.07)", border: "1px solid #F0E8E8",
             }}>
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#E85C5C" strokeWidth="1.5">
-                <path d="M10 17s-7-4.5-7-9a5 5 0 0 1 7-4.58A5 5 0 0 1 17 8c0 4.5-7 9-7 9z" />
-              </svg>
-              Everything you need to build healthy habits
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#E85C5C" strokeWidth="1.5">
-                <path d="M10 17s-7-4.5-7-9a5 5 0 0 1 7-4.58A5 5 0 0 1 17 8c0 4.5-7 9-7 9z" />
-              </svg>
+              <div style={{
+                width: 50, height: 50, borderRadius: "50%", background: f.bg,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 22, margin: "0 auto 12px",
+              }}>{f.icon}</div>
+              <h4 style={{ fontSize: 13, fontWeight: 700 }}>{f.title}</h4>
+              <p style={{ fontSize: 11, color: "#6B7A9A", lineHeight: 1.65, marginTop: 5 }}>{f.desc}</p>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
+          ))}
+        </div>
+      </section>
+
+      {/* Family section */}
+      <section style={{ padding: "60px 60px", background: "#fff" }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: 56,
+          background: "linear-gradient(135deg,#FFF5F3 0%,#FFE8E4 100%)",
+          borderRadius: 24, padding: "48px 52px", overflow: "hidden", position: "relative",
+        }}>
+          <div style={{ position: "absolute", top: -60, right: -60, width: 240, height: 240, background: "rgba(232,92,92,.06)", borderRadius: "50%" }} />
+          <div style={{ position: "absolute", bottom: -40, left: 380, width: 180, height: 180, background: "rgba(232,92,92,.04)", borderRadius: "50%" }} />
+
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/family-sunset.png"
+            alt="Family health"
+            style={{
+              width: 380, flexShrink: 0, borderRadius: 20,
+              boxShadow: "0 12px 48px rgba(26,20,20,.14)",
+              position: "relative", zIndex: 1,
+            }}
+          />
+
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 7, background: "#FFEDEC",
+              color: "#E85C5C", fontSize: 12, fontWeight: 600, padding: "5px 13px",
+              borderRadius: 20, marginBottom: 18,
+            }}>
+              ❤️ Built for Indian families
+            </div>
+            <h2 style={{ fontSize: 36, fontWeight: 700, lineHeight: 1.15, letterSpacing: "-.5px", color: "#1A2744" }}>
+              Health tracking that<br />
+              <span style={{ color: "#E85C5C" }}>fits your family&apos;s life</span>
+            </h2>
+            <p style={{ fontSize: 15, color: "#6B7A9A", lineHeight: 1.75, marginTop: 16, maxWidth: 380 }}>
+              No app to download. No form to fill. Just send a casual message on WhatsApp — in Hindi or English — and we&apos;ll take care of the rest.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 28 }}>
               {[
-                { bg: "#E6F9EE", icon: "💬", title: "Track Health", desc: "Log vitals, steps and appointments easily from anywhere, anytime." },
-                { bg: "#FFEDEC", icon: "📊", title: "Beautiful Insights", desc: "Visualize your progress with easy-to-understand charts and summaries." },
-                { bg: "#EBF3FF", icon: "🎯", title: "Set Goals", desc: "Set daily goals for steps, meals and activity. We'll help you stay on track." },
-                { bg: "#FFF8E0", icon: "🏆", title: "Celebrate Progress", desc: "Earn achievements and stay motivated every step of the way." },
-                { bg: "#F0EEFF", icon: "🔒", title: "Secure & Private", desc: "Your data is encrypted and never shared with anyone." },
-              ].map((f) => (
-                <div key={f.title} style={{
-                  background: "#fff", borderRadius: 14, padding: "20px 14px", textAlign: "center",
-                  boxShadow: "0 2px 12px rgba(26,20,20,.07)", border: "1px solid #F0E8E8",
-                }}>
+                { icon: "💬", text: "Works in Hindi, English or both mixed" },
+                { icon: "👴", text: "Designed for parents who don't use apps" },
+                { icon: "📊", text: "You see the dashboard, they just WhatsApp" },
+              ].map((item) => (
+                <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{
-                    width: 50, height: 50, borderRadius: "50%", background: f.bg,
+                    width: 36, height: 36, borderRadius: 10, background: "#fff",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 22, margin: "0 auto 12px",
-                  }}>{f.icon}</div>
-                  <h4 style={{ fontSize: 13, fontWeight: 700 }}>{f.title}</h4>
-                  <p style={{ fontSize: 11, color: "#6B7A9A", lineHeight: 1.65, marginTop: 5 }}>{f.desc}</p>
+                    fontSize: 16, boxShadow: "0 2px 8px rgba(26,20,20,.08)", flexShrink: 0,
+                  }}>{item.icon}</div>
+                  <span style={{ fontSize: 14, color: "#4A5568", fontWeight: 500 }}>{item.text}</span>
                 </div>
               ))}
             </div>
-          </div>
-          <div style={{ width: 260, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/family-sunset.png" alt="Family health" style={{ width: 240, borderRadius: 16, boxShadow: "0 4px 24px rgba(26,20,20,.10)" }} />
+            <Link href="/login" style={{
+              display: "inline-block", marginTop: 32, padding: "13px 28px",
+              background: "#E85C5C", color: "#fff", borderRadius: 8,
+              fontSize: 14, fontWeight: 700, boxShadow: "0 4px 14px rgba(232,92,92,.3)",
+            }}>Get Started Free →</Link>
           </div>
         </div>
       </section>
