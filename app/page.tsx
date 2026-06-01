@@ -448,12 +448,6 @@ export default function LandingPage() {
             borderRadius: 8, fontSize: 14, fontWeight: 700,
             boxShadow: "0 4px 14px rgba(232,92,92,.3)",
           }}>Get Started for Free</Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "#6B7A9A" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22,4 12,14.01 9,11.01" />
-            </svg>
-            No credit card required
-          </div>
         </div>
       </div>
     </div>
