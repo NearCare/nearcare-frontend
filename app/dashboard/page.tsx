@@ -26,14 +26,14 @@ Chart.register(
 );
 
 const navItems = [
-  { icon: "🏠", label: "Home", active: true, href: "#" },
-  { icon: "📈", label: "Progress", href: "#" },
-  { icon: "📅", label: "Appointments", href: "#" },
-  { icon: "👤", label: "Nearby Providers", href: "#" },
-  { icon: "📄", label: "Health Records", href: "#" },
-  { icon: "⚡", label: "Activity", href: "#" },
-  { icon: "🔔", label: "Reminders", href: "#" },
-  { icon: "⚙️", label: "Settings", href: "#" },
+  { icon: "🏠", label: "Home",             active: true, href: "/dashboard", soon: false },
+  { icon: "📈", label: "Progress",          href: "#", soon: true },
+  { icon: "📅", label: "Appointments",      href: "#", soon: true },
+  { icon: "👤", label: "Nearby Providers",  href: "#", soon: true },
+  { icon: "📄", label: "Health Records",    href: "#", soon: true },
+  { icon: "⚡", label: "Activity",          href: "#", soon: true },
+  { icon: "🔔", label: "Reminders",         href: "#", soon: true },
+  { icon: "⚙️", label: "Settings",          href: "#", soon: true },
 ];
 
 // ─── Chart components ────────────────────────────────────────────────────────
@@ -572,15 +572,26 @@ function Sidebar() {
 
       <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 2 }}>
         {navItems.map((item) => (
-          <li key={item.label}>
-            <a href={item.href} style={{
-              display: "flex", alignItems: "center", gap: 9, padding: "9px 12px",
-              borderRadius: 10, fontSize: 13.5, fontWeight: item.active ? 600 : 500,
-              color: item.active ? "#E85C5C" : "#6B7A9A",
-              background: item.active ? "#FFEDEC" : "transparent",
-              textDecoration: "none",
-            }}>
-              <span>{item.icon}</span> {item.label}
+          <li key={item.label} title={item.soon ? "Coming soon" : undefined}>
+            <a
+              href={item.soon ? undefined : item.href}
+              onClick={item.soon ? (e) => e.preventDefault() : undefined}
+              style={{
+                display: "flex", alignItems: "center", gap: 9, padding: "9px 12px",
+                borderRadius: 10, fontSize: 13.5, fontWeight: item.active ? 600 : 500,
+                color: item.active ? "#E85C5C" : item.soon ? "#C8D0DC" : "#6B7A9A",
+                background: item.active ? "#FFEDEC" : "transparent",
+                textDecoration: "none",
+                cursor: item.soon ? "default" : "pointer",
+              }}>
+              <span style={{ opacity: item.soon ? 0.5 : 1 }}>{item.icon}</span>
+              <span style={{ flex: 1 }}>{item.label}</span>
+              {item.soon && (
+                <span style={{
+                  fontSize: 9, fontWeight: 600, color: "#B0BFCC",
+                  background: "#F5F0F0", padding: "2px 6px", borderRadius: 10,
+                }}>Soon</span>
+              )}
             </a>
           </li>
         ))}
