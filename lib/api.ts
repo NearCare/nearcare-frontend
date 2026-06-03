@@ -126,17 +126,14 @@ export async function getUserLogs(
  * Returns null when the backend reports "No data given yet".
  */
 export async function getUserSummary(userId: string): Promise<Summary | null> {
-  try {
-    // Backend returns { message: "No data given yet" } when logs are empty —
-    // we catch that and normalise to null.
-    const data = await apiFetch<Summary | { message: string }>(
-      `/api/users/${userId}/summary`
-    );
-    if ("message" in data) return null;
-    return data as Summary;
-  } catch {
-    return null;
-  }
+  // Backend returns { message: "No data given yet" } when logs are empty —
+  // we catch that and normalise to null. Any real network/server error
+  // is re-thrown so the dashboard can surface it.
+  const data = await apiFetch<Summary | { message: string }>(
+    `/api/users/${userId}/summary`
+  );
+  if ("message" in data) return null;
+  return data as Summary;
 }
 
 // ─── Derived helpers used by the dashboard ───────────────────────────────────
