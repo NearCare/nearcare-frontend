@@ -42,7 +42,7 @@ const DashboardMockup = () => (
         Hello, Priya! 👋 <small style={{ fontSize: 9.5, color: "#6B7A9A", fontWeight: 400, display: "block", marginTop: 1 }}>Here&apos;s your health summary for today.</small>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-        <div style={{ background: "#fff", border: "1px solid #EDE6E6", borderRadius: 6, padding: "4px 9px", fontSize: 9, color: "#6B7A9A" }}>📅 Today, 20 May 2026 ▾</div>
+        <div style={{ background: "#fff", border: "1px solid #EDE6E6", borderRadius: 6, padding: "4px 9px", fontSize: 9, color: "#6B7A9A" }}>📅 Today, {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} ▾</div>
         <div style={{ width: 26, height: 26, background: "#fff", border: "1px solid #EDE6E6", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", fontSize: 12 }}>
           🔔<div style={{ position: "absolute", top: 4, right: 5, width: 5, height: 5, background: "#E85C5C", borderRadius: "50%", border: "1.5px solid #fff" }}></div>
         </div>
