@@ -25,18 +25,40 @@ Chart.register(
   BarController, LineController, DoughnutController,
 );
 
+// ── Nav ───────────────────────────────────────────────────────────────────────
+
 const navItems = [
-  { icon: "🏠", label: "Home",             active: true, href: "/dashboard", soon: false },
-  { icon: "📈", label: "Progress",          href: "#", soon: true },
-  { icon: "📅", label: "Appointments",      href: "#", soon: true },
-  { icon: "👤", label: "Nearby Providers",  href: "#", soon: true },
-  { icon: "📄", label: "Health Records",    href: "#", soon: true },
-  { icon: "⚡", label: "Activity",          href: "#", soon: true },
-  { icon: "🔔", label: "Reminders",         href: "#", soon: true },
-  { icon: "⚙️", label: "Settings",          href: "#", soon: true },
+  { label: "Home",             href: "/dashboard", active: true,  soon: false },
+  { label: "Progress",         href: "#",          active: false, soon: true  },
+  { label: "Appointments",     href: "#",          active: false, soon: true  },
+  { label: "Nearby Providers", href: "#",          active: false, soon: true  },
+  { label: "Health Records",   href: "#",          active: false, soon: true  },
+  { label: "Activity",         href: "#",          active: false, soon: true  },
+  { label: "Reminders",        href: "#",          active: false, soon: true  },
+  { label: "Settings",         href: "#",          active: false, soon: true  },
 ];
 
-// ─── Chart components ────────────────────────────────────────────────────────
+const NAV_PATHS: Record<string, string> = {
+  "Home":             "M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z M9 21V12h6v9",
+  "Progress":         "M3 17l6-6 4 4 8-10",
+  "Appointments":     "M8 2v3M16 2v3M3 8h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z",
+  "Nearby Providers": "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+  "Health Records":   "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z M14 2v6h6 M12 18v-6 M9 15h6",
+  "Activity":         "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
+  "Reminders":        "M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0",
+  "Settings":         "M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z",
+};
+
+function NavIcon({ name }: { name: string }) {
+  return (
+    <svg className="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d={NAV_PATHS[name] ?? NAV_PATHS["Home"]} />
+    </svg>
+  );
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function useChart(canvasRef: React.RefObject<HTMLCanvasElement | null>, buildConfig: () => any, deps: unknown[] = []) {
@@ -63,108 +85,96 @@ function StepsChart({ data }: { data: { label: string; value: number }[] }) {
       labels,
       datasets: [{
         data: values,
-        backgroundColor: values.map((_, i) => i === maxIdx ? "#1A2744" : "#BDDEFF"),
-        borderRadius: 6,
-        borderSkipped: false as const,
+        backgroundColor: values.map((_, i) => i === maxIdx ? "#FF6B6B" : "#FFD5D5"),
+        borderRadius: 7,
+        borderSkipped: false,
       }],
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: { parsed: { y: number } }) => c.parsed.y.toLocaleString() + " steps" } } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#2C2F3A",
+          titleFont: { family: "Plus Jakarta Sans", size: 11 },
+          bodyFont: { family: "Plus Jakarta Sans", size: 12, weight: "700" as const },
+          callbacks: { label: (c: { parsed: { y: number } }) => c.parsed.y.toLocaleString() + " steps" },
+        },
+      },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { family: "DM Sans", size: 10 }, color: "#9AAABB" } },
-        y: { grid: { color: "#F5F0F0" }, ticks: { font: { family: "DM Sans", size: 10 }, color: "#9AAABB", callback: (v: number | string) => Number(v) >= 1000 ? Number(v) / 1000 + "k" : v }, beginAtZero: true },
+        x: {
+          grid: { display: false },
+          ticks: { font: { family: "Plus Jakarta Sans", size: 11 }, color: "#9AA0AD" },
+          border: { display: false },
+        },
+        y: {
+          grid: { color: "#F2F1F3" },
+          ticks: {
+            font: { family: "Plus Jakarta Sans", size: 10 }, color: "#9AA0AD",
+            callback: (v: number | string) => Number(v) >= 1000 ? Number(v) / 1000 + "k" : v,
+          },
+          beginAtZero: true,
+          border: { display: false },
+        },
       },
     },
   }), [JSON.stringify(data)]);
   return <canvas ref={canvasRef} />;
 }
 
-function TripleDonut({ stepPct, proteinPct, carbsPct }: { stepPct: number; proteinPct: number; carbsPct: number }) {
-  const size = 160;
-  const cx = size / 2;
-  const cy = size / 2;
-
-  // Three rings: outer=steps, middle=protein, inner=carbs
+function TripleDonut({ stepPct, proteinPct, carbsPct }: {
+  stepPct: number; proteinPct: number; carbsPct: number;
+}) {
+  const size = 152;
+  const cx = size / 2, cy = size / 2;
   const rings = [
-    { r: 68, stroke: "#4A8FE2", track: "#E8F3FF", pct: stepPct,    label: "Steps"   },
-    { r: 52, stroke: "#3EB86A", track: "#E8F8EE", pct: proteinPct, label: "Protein" },
-    { r: 36, stroke: "#F5A623", track: "#FFF8E0", pct: carbsPct,   label: "Carbs"   },
+    { r: 64, stroke: "#FF6B6B", track: "#FFE7E6", pct: stepPct },
+    { r: 49, stroke: "#2FBE76", track: "#EAFBF0", pct: proteinPct },
+    { r: 34, stroke: "#FF9F45", track: "#FFF4E8", pct: carbsPct },
   ];
-
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       {rings.map(({ r, stroke, track, pct }) => {
-        const circumference = 2 * Math.PI * r;
-        const dash = (pct / 100) * circumference;
+        const c = 2 * Math.PI * r;
+        const dash = (pct / 100) * c;
         return (
           <g key={r}>
-            {/* Track */}
             <circle cx={cx} cy={cy} r={r} fill="none" stroke={track} strokeWidth={10} />
-            {/* Progress */}
-            <circle
-              cx={cx} cy={cy} r={r} fill="none"
-              stroke={stroke} strokeWidth={10}
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke={stroke} strokeWidth={10}
               strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference}`}
-              strokeDashoffset={0}
+              strokeDasharray={`${dash} ${c}`}
               transform={`rotate(-90 ${cx} ${cy})`}
               style={{ transition: "stroke-dasharray .6s ease" }}
             />
           </g>
         );
       })}
-      {/* Centre label — show step pct as primary */}
-      <text x={cx} y={cy - 6} textAnchor="middle" fontSize="18" fontWeight="700" fill="#1A2744" fontFamily="DM Sans, sans-serif">
+      <text x={cx} y={cy - 6} textAnchor="middle" fontSize="18" fontWeight="800"
+        fill="#2C2F3A" fontFamily="Plus Jakarta Sans, sans-serif">
         {stepPct}%
       </text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fontSize="9" fill="#9AAABB" fontFamily="DM Sans, sans-serif">
+      <text x={cx} y={cy + 12} textAnchor="middle" fontSize="9"
+        fill="#9AA0AD" fontFamily="Plus Jakarta Sans, sans-serif">
         step goal
       </text>
     </svg>
   );
 }
 
-function ProgressChart({ data }: { data: { label: string; value: number }[] }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useChart(canvasRef, () => ({
-    type: "line",
-    data: {
-      labels: data.map((d) => d.label),
-      datasets: [{
-        data: data.map((d) => d.value),
-        borderColor: "#4A8FE2", backgroundColor: "rgba(74,143,226,.09)",
-        fill: true, tension: 0.42, borderWidth: 2,
-        pointRadius: 3, pointBackgroundColor: "#4A8FE2",
-        pointBorderColor: "#fff", pointBorderWidth: 2,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { family: "DM Sans", size: 9 }, color: "#9AAABB" } },
-        y: { display: false },
-      },
-    },
-  }), [JSON.stringify(data)]);
-  return <canvas ref={canvasRef} />;
-}
+// ── Skeleton ──────────────────────────────────────────────────────────────────
 
-// ─── Loading skeleton ─────────────────────────────────────────────────────────
-
-function Skeleton({ w = "100%", h = 20, radius = 6 }: { w?: string | number; h?: number; radius?: number }) {
+function Skel({ w = "100%", h = 20, r = 6 }: { w?: string | number; h?: number; r?: number }) {
   return (
     <div style={{
-      width: w, height: h, borderRadius: radius,
-      background: "linear-gradient(90deg, #F5EEEE 25%, #F0E8E8 50%, #F5EEEE 75%)",
+      width: w, height: h, borderRadius: r,
+      background: "linear-gradient(90deg,#F5EEEE 25%,#EFE8E8 50%,#F5EEEE 75%)",
       backgroundSize: "200% 100%",
       animation: "shimmer 1.4s infinite",
     }} />
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -172,6 +182,23 @@ function getGreeting(): string {
   if (h < 17) return "Good afternoon";
   return "Good evening";
 }
+
+const WA_LINK = "https://wa.me/14155238886";
+
+const WaIcon = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="white">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+  </svg>
+);
+
+const CheckMark = () => (
+  <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="white"
+    strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 6.2L4.5 9 10 3.5" />
+  </svg>
+);
+
+// ── Dashboard page ────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -184,17 +211,9 @@ export default function DashboardPage() {
     (async () => {
       try {
         setLoading(true);
-
-        // Read logged-in user from localStorage (set by login page after OTP verify)
         const stored = localStorage.getItem("auth_user");
         const authUser: User | null = stored ? JSON.parse(stored) : null;
-
-        if (!authUser) {
-          // Not logged in — redirect to login
-          window.location.href = "/login";
-          return;
-        }
-
+        if (!authUser) { window.location.href = "/login"; return; }
         setUser(authUser);
         const [fetchedLogs, fetchedSummary] = await Promise.all([
           getUserLogs(authUser.id, 7),
@@ -210,59 +229,61 @@ export default function DashboardPage() {
     })();
   }, []);
 
-  // ── Derived values ──────────────────────────────────────────────────────────
-  const weeklySteps = useMemo(() => logsToWeeklySteps(logs), [logs]);
-  const avgSteps = summary?.avg_steps ?? 0;
-  const stepGoalPct = Math.min(Math.round((avgSteps / 10000) * 100), 100);
-  // Use local date (not UTC) so IST users after 6:30 PM get the correct date
-  const todayIST = new Date().toLocaleDateString("en-CA"); // "YYYY-MM-DD" in local timezone
-  const todayLog = logs.find((l) => l.logged_at === todayIST);
-  const todaySteps = todayLog?.steps ?? 0;
+  const weeklySteps  = useMemo(() => logsToWeeklySteps(logs), [logs]);
+  const avgSteps     = summary?.avg_steps ?? 0;
+  const stepGoalPct  = Math.min(Math.round((avgSteps / 10000) * 100), 100);
+  const todayIST     = new Date().toLocaleDateString("en-CA");
+  const todayLog     = logs.find((l) => l.logged_at === todayIST);
+  const todaySteps   = todayLog?.steps ?? 0;
   const todayStepPct = Math.min(Math.round((todaySteps / 10000) * 100), 100);
-  const proteinAvg = summary?.avg_protein_g ?? 0;
-  const carbsAvg = summary?.avg_carbs_g ?? 0;
+  const proteinAvg   = summary?.avg_protein_g ?? 0;
+  const carbsAvg     = summary?.avg_carbs_g ?? 0;
+  const proteinPct   = Math.min(Math.round((proteinAvg / 50) * 100), 100);
+  const carbsPct     = Math.min(Math.round((carbsAvg / 200) * 100), 100);
+  const goalHits     = summary?.step_goal_hits ?? 0;
 
-  // ── Loading state ───────────────────────────────────────────────────────────
+  // ── Loading ─────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh" }}>
+      <div className="db-page">
         <Sidebar />
-        <div style={{ marginLeft: 214, padding: "22px 22px 36px", flex: 1 }}>
-          <div style={{ marginBottom: 20 }}>
-            <Skeleton h={28} w={260} />
-            <div style={{ marginTop: 8 }}><Skeleton h={16} w={200} /></div>
-          </div>
-          <div className="stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 13, marginBottom: 14 }}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} style={{ background: "#fff", borderRadius: 16, padding: "17px 19px", boxShadow: "0 2px 12px rgba(26,20,20,.07)" }}>
-                <Skeleton h={50} w={50} radius={14} />
-                <div style={{ marginTop: 12 }}><Skeleton h={30} w={100} /></div>
-                <div style={{ marginTop: 6 }}><Skeleton h={5} radius={3} /></div>
+        <div className="db-main">
+          <div style={{ marginBottom: 4 }}><Skel h={32} w={320} r={8} /></div>
+          <div><Skel h={18} w={220} r={6} /></div>
+          <div className="db-kpi-row" style={{ marginTop: 4 }}>
+            {[1,2,3,4].map(i => (
+              <div key={i} className="db-kpi k-blue">
+                <Skel h={30} w={30} r={10} />
+                <div style={{ marginTop: 14 }}><Skel h={38} w={110} r={6} /></div>
+                <div style={{ marginTop: 12 }}><Skel h={7} r={4} /></div>
+                <div style={{ marginTop: 8 }}><Skel h={14} w={140} r={4} /></div>
               </div>
             ))}
+          </div>
+          <div className="db-grid">
+            <Skel h={320} r={22} />
+            <Skel h={320} r={22} />
+            <Skel h={320} r={22} />
           </div>
         </div>
       </div>
     );
   }
 
-  // ── Error state ─────────────────────────────────────────────────────────────
+  // ── Error ───────────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh" }}>
+      <div className="db-page">
         <Sidebar />
-        <div style={{ marginLeft: 214, display: "flex", alignItems: "center", justifyContent: "center", flex: 1 }}>
+        <div className="db-main" style={{ alignItems: "center", justifyContent: "center", display: "flex" }}>
           <div style={{ textAlign: "center", padding: 48 }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>⚠️</div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: "#1A2744", marginBottom: 8 }}>Something went wrong</h3>
-            <p style={{ fontSize: 13.5, color: "#6B7A9A", maxWidth: 340, lineHeight: 1.7 }}>
+            <div style={{ fontSize: 44, marginBottom: 16 }}>⚠️</div>
+            <h3 style={{ fontSize: 19, fontWeight: 800, color: "#2C2F3A", marginBottom: 8 }}>Something went wrong</h3>
+            <p style={{ fontSize: 14, color: "#5A5F6E", maxWidth: 340, lineHeight: 1.7 }}>
               We couldn&apos;t load your health data. Please try refreshing the page.
-              If the problem persists, contact support.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              style={{ marginTop: 16, padding: "10px 24px", background: "#E85C5C", color: "#fff", border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: "pointer" }}
-            >
+            <button onClick={() => window.location.reload()}
+              style={{ marginTop: 18, padding: "11px 28px", background: "#FF6B6B", color: "#fff", border: "none", borderRadius: 13, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
               Retry
             </button>
           </div>
@@ -271,155 +292,226 @@ export default function DashboardPage() {
     );
   }
 
-  // ── Empty state — no users or no logs ───────────────────────────────────────
+  // ── Empty state ─────────────────────────────────────────────────────────────
   if (!user || logs.length === 0) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh" }}>
+      <div className="db-page">
         <Sidebar />
-        <div style={{ marginLeft: 214, flex: 1 }}>
+        <div className="db-main">
           <EmptyState userName={user?.name ?? undefined} />
         </div>
       </div>
     );
   }
 
-  // ── Full dashboard ───────────────────────────────────────────────────────────
-  // If name is null, show "there" in greeting and use phone last 4 digits for avatar
-  const displayName = user.name ?? "there";
+  // ── Full dashboard ──────────────────────────────────────────────────────────
+  const displayName  = user.name ?? "there";
   const avatarLetter = user.name
     ? user.name.charAt(0).toUpperCase()
     : user.phone.slice(-4, -3) || "U";
 
+  // Dynamic AI insights based on real data
+  const insights: { type: "good" | "warn"; text: React.ReactNode }[] = [];
+  if (goalHits >= 5) {
+    insights.push({ type: "good", text: <><b>Incredible week!</b> You hit your 10k step goal {goalHits} out of 7 days — that&apos;s elite consistency.</> });
+  } else if (goalHits >= 3) {
+    insights.push({ type: "good", text: <><b>{goalHits} days hit goal</b> this week. You&apos;re in great stride — push for one more tomorrow!</> });
+  } else if (goalHits > 0) {
+    insights.push({ type: "warn", text: <><b>Step goal hit {goalHits}×.</b> Aim for at least 3 days this week — even a 15-min walk counts.</> });
+  }
+  if (proteinAvg > 0 && proteinPct < 70) {
+    insights.push({ type: "warn", text: <><b>Protein below target.</b> Averaging {proteinAvg.toFixed(0)}g vs 50g daily goal. Add eggs, dal, or nuts!</> });
+  } else if (proteinAvg >= 50) {
+    insights.push({ type: "good", text: <><b>Great protein intake!</b> {proteinAvg.toFixed(0)}g/day avg supports muscle recovery and energy.</> });
+  }
+  if (insights.length === 0) {
+    insights.push({ type: "good", text: <><b>Dashboard is live!</b> Keep logging on WhatsApp and your trends will grow here.</> });
+  }
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="db-page">
       <Sidebar />
 
-      {/* Main */}
-      <div className="dashboard-main" style={{ marginLeft: 214, padding: "22px 22px 36px", flex: 1 }}>
-        {/* Topbar */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+      <div className="db-main">
+        {/* ── Topbar ── */}
+        <div className="db-topbar">
           <div>
-            <h2 style={{ fontSize: 21, fontWeight: 700, letterSpacing: "-.2px" }}>{getGreeting()}, {displayName}! 👋</h2>
-            <p style={{ fontSize: 13, color: "#6B7A9A", marginTop: 3 }}>Here&apos;s your health overview for today.</p>
+            <h1 className="db-greeting">{getGreeting()}, {displayName}! 👋</h1>
+            <p className="db-subtitle">Here&apos;s your health overview for today.</p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 6, background: "#fff",
-              border: "1.5px solid #EDE6E6", borderRadius: 8, padding: "8px 13px",
-              fontSize: 12.5, color: "#6B7A9A", fontWeight: 500,
-            }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="db-top-actions">
+            <div className="db-pill">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
                 <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
               {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </div>
-            <div style={{
-              width: 38, height: 38, borderRadius: "50%",
-              background: "linear-gradient(135deg,#FFD0C8,#FF9E9E)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 700, color: "#fff",
-            }}>
-              {avatarLetter}
-            </div>
+            <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="db-pill cta">
+              <WaIcon size={15} />
+              Log via WhatsApp
+            </a>
+            <div className="db-avatar">{avatarLetter}</div>
           </div>
         </div>
 
-        {/* Stat row */}
-        <div className="stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 13, marginBottom: 14 }}>
-          {[
-            {
-              ico: "👟", icoColor: "rgba(74,143,226,.15)", lblColor: "#4A8FE2",
-              label: "Steps Today", val: todaySteps.toLocaleString(),
-              fillColor: "#4A8FE2", pct: todayStepPct,
-              goal: "Goal: 10,000 steps", blue: true,
-            },
-            {
-              ico: "🥩", icoColor: "#F0FFF6", lblColor: "#3EB86A",
-              label: "Avg Protein (7d)", val: proteinAvg ? `${proteinAvg.toFixed(0)}g` : "—",
-              fillColor: "#3EB86A", pct: Math.min(Math.round((proteinAvg / 50) * 100), 100),
-              goal: "Goal: 50g / day", blue: false,
-            },
-            {
-              ico: "🌾", icoColor: "#FFF8E0", lblColor: "#F5A623",
-              label: "Avg Carbs (7d)", val: carbsAvg ? `${carbsAvg.toFixed(0)}g` : "—",
-              fillColor: "#F5A623", pct: Math.min(Math.round((carbsAvg / 200) * 100), 100),
-              goal: "Goal: 200g / day", blue: false,
-            },
-          ].map((s) => (
-            <div key={s.label} style={{
-              background: s.blue ? "linear-gradient(145deg,#EBF3FF,#D4E8FF)" : "#fff",
-              borderRadius: 16, padding: "17px 19px",
-              boxShadow: "0 2px 12px rgba(26,20,20,.07)",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
-                <div style={{
-                  width: 50, height: 50, borderRadius: 14, background: s.icoColor,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 24, flexShrink: 0,
-                }}>{s.ico}</div>
-                <div>
-                  <div style={{ fontSize: 11.5, fontWeight: 600, color: s.lblColor }}>{s.label}</div>
-                  <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-.5px", lineHeight: 1.1, marginTop: 3 }}>{s.val}</div>
-                </div>
-              </div>
-              <div style={{ marginTop: 13 }}>
-                <div style={{ height: 5, background: s.blue ? "rgba(74,143,226,.18)" : "rgba(0,0,0,.08)", borderRadius: 3, overflow: "hidden" }}>
-                  <div style={{ height: "100%", borderRadius: 3, background: s.fillColor, width: `${s.pct}%`, transition: "width .6s ease" }} />
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5, fontSize: 11 }}>
-                  <span style={{ color: "#B0BFCC" }}>{s.goal}</span>
-                  <strong style={{ color: "#6B7A9A", fontWeight: 600 }}>{s.pct}%</strong>
-                </div>
-              </div>
+        {/* ── KPI Row ── */}
+        <div className="db-kpi-row">
+          <div className="db-kpi k-coral">
+            <div className="db-kpi-top">
+              <div className="db-kpi-ic" style={{ background: "#FFD5D5" }}>👟</div>
+              <span className="db-kpi-label">Steps Today</span>
             </div>
-          ))}
+            <div className="db-kpi-val">
+              {todaySteps >= 1000
+                ? <>{(todaySteps / 1000).toFixed(1)}<span className="unit">k</span></>
+                : (todaySteps || "—")}
+            </div>
+            <div className="db-bar-track">
+              <div className="db-bar-fill" style={{ width: `${todayStepPct}%`, background: "#FF6B6B" }} />
+            </div>
+            <div className="db-kpi-sub">{todayStepPct}% of 10,000 step goal</div>
+          </div>
+
+          <div className="db-kpi k-blue">
+            <div className="db-kpi-top">
+              <div className="db-kpi-ic" style={{ background: "#EAF4FF" }}>🥩</div>
+              <span className="db-kpi-label">Avg Protein</span>
+            </div>
+            <div className="db-kpi-val">
+              {proteinAvg ? <>{proteinAvg.toFixed(0)}<span className="unit">g</span></> : "—"}
+            </div>
+            <div className="db-bar-track">
+              <div className="db-bar-fill" style={{ width: `${proteinPct}%`, background: "#4F9BF5" }} />
+            </div>
+            <div className="db-kpi-sub">{proteinPct}% of 50g goal · 7-day avg</div>
+          </div>
+
+          <div className="db-kpi k-orange">
+            <div className="db-kpi-top">
+              <div className="db-kpi-ic" style={{ background: "#FFE9D2" }}>🌾</div>
+              <span className="db-kpi-label">Avg Carbs</span>
+            </div>
+            <div className="db-kpi-val">
+              {carbsAvg ? <>{carbsAvg.toFixed(0)}<span className="unit">g</span></> : "—"}
+            </div>
+            <div className="db-bar-track">
+              <div className="db-bar-fill" style={{ width: `${carbsPct}%`, background: "#FF9F45" }} />
+            </div>
+            <div className="db-kpi-sub">{carbsPct}% of 200g goal · 7-day avg</div>
+          </div>
+
+          <div className="db-kpi k-green">
+            <div className="db-kpi-top">
+              <div className="db-kpi-ic" style={{ background: "#D8F5E4" }}>🎯</div>
+              <span className="db-kpi-label">Goal Hits</span>
+            </div>
+            <div className="db-kpi-val">
+              {goalHits}<span className="unit">/ 7</span>
+            </div>
+            <div className="db-bar-track">
+              <div className="db-bar-fill" style={{ width: `${(goalHits / 7) * 100}%`, background: "#2FBE76" }} />
+            </div>
+            <div className="db-kpi-sub">Days step goal hit this week</div>
+          </div>
         </div>
 
-        {/* Chart grid */}
-        <div className="chart-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 272px", gap: 13, marginBottom: 13 }}>
-          {/* Steps chart */}
-          <div style={{ background: "#fff", borderRadius: 16, padding: "17px 19px", boxShadow: "0 2px 12px rgba(26,20,20,.07)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 13 }}>
-              <div>
-                <div style={{ fontSize: 14.5, fontWeight: 600 }}>Steps Overview</div>
-                <div style={{ fontSize: 27, fontWeight: 700, letterSpacing: "-.4px", marginTop: 4 }}>
-                  {avgSteps ? avgSteps.toLocaleString() : "—"}
+        {/* ── 3-column grid ── */}
+        <div className="db-grid">
+
+          {/* Col 1 — Steps chart + WhatsApp CTA */}
+          <div className="db-col">
+            <div className="db-card db-card-pad">
+              <div className="db-card-h">
+                <div className="db-card-title">📊 Steps Overview</div>
+                <div className="db-mini-sel">This Week</div>
+              </div>
+              <div className="db-steps-big">
+                {avgSteps ? avgSteps.toLocaleString() : "—"}
+              </div>
+              <div className="db-steps-avg">7-day average steps</div>
+              {goalHits > 0 && (
+                <div className="db-chip-up">
+                  🎯 {goalHits} day{goalHits !== 1 ? "s" : ""} hit goal
                 </div>
-                <div style={{ fontSize: 12, color: "#6B7A9A", marginTop: 2 }}>7-day average</div>
-                {summary && summary.step_goal_hits > 0 && (
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#3EB86A", marginTop: 4 }}>
-                    🎯 {summary.step_goal_hits} day{summary.step_goal_hits !== 1 ? "s" : ""} hit goal this week
-                  </div>
-                )}
+              )}
+              <div style={{ position: "relative", height: 164, marginTop: 16 }}>
+                <StepsChart data={weeklySteps} />
               </div>
             </div>
-            <div style={{ position: "relative", height: 140 }}>
-              <StepsChart data={weeklySteps} />
+
+            <div className="db-card db-card-pad">
+              <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="db-wa-btn">
+                <div className="db-wa-ic"><WaIcon size={16} /></div>
+                <span>Log today&apos;s health via WhatsApp</span>
+                <svg style={{ marginLeft: "auto", color: "#20A865", flexShrink: 0 }}
+                  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </a>
             </div>
           </div>
 
-          {/* Recent logs */}
-          <div style={{ background: "#fff", borderRadius: 16, padding: "17px 19px", boxShadow: "0 2px 12px rgba(26,20,20,.07)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 13 }}>
-              <div>
-                <div style={{ fontSize: 14.5, fontWeight: 600 }}>Recent Logs</div>
-                <div style={{ fontSize: 11, color: "#E85C5C", fontWeight: 600, marginTop: 2 }}>Last 7 days</div>
+          {/* Col 2 — Today's log + Recent logs */}
+          <div className="db-col">
+            <div className="db-card db-card-pad">
+              <div className="db-card-h" style={{ marginBottom: 4 }}>
+                <div className="db-card-title">📋 Today&apos;s Log</div>
               </div>
+
+              <div className="db-sum-row">
+                <div className="db-sum-ic" style={{ background: "#FFE7E6" }}>👟</div>
+                <span className="db-sum-label">Steps</span>
+                <div className="db-sum-val">
+                  {todaySteps ? todaySteps.toLocaleString() : "—"}
+                  {todayStepPct >= 100 && (
+                    <div className="db-check"><CheckMark /></div>
+                  )}
+                </div>
+              </div>
+
+              <div className="db-sum-row">
+                <div className="db-sum-ic" style={{ background: "#EAF4FF" }}>🥩</div>
+                <span className="db-sum-label">Protein</span>
+                <div className="db-sum-val">
+                  {todayLog?.protein_g != null ? `${todayLog.protein_g.toFixed(0)}g` : "—"}
+                  {todayLog?.protein_g != null && todayLog.protein_g >= 50 && (
+                    <div className="db-check"><CheckMark /></div>
+                  )}
+                </div>
+              </div>
+
+              <div className="db-sum-row">
+                <div className="db-sum-ic" style={{ background: "#FFF4E8" }}>🌾</div>
+                <span className="db-sum-label">Carbs</span>
+                <div className="db-sum-val">
+                  {todayLog?.carbs_g != null ? `${todayLog.carbs_g.toFixed(0)}g` : "—"}
+                </div>
+              </div>
+
+              {todayLog?.raw_message && (
+                <div style={{ marginTop: 12, padding: "10px 12px", background: "#F7F6F8", borderRadius: 12, fontSize: 12.5, color: "#5A5F6E", lineHeight: 1.45 }}>
+                  💬 &ldquo;{todayLog.raw_message}&rdquo;
+                </div>
+              )}
             </div>
-            <div>
+
+            <div className="db-card db-card-pad">
+              <div className="db-card-h" style={{ marginBottom: 12 }}>
+                <div className="db-card-title">📜 Recent Logs</div>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: "#FF6B6B", background: "#FFF3F2", padding: "3px 9px", borderRadius: 20 }}>7 days</span>
+              </div>
               {logs.slice(0, 4).map((log) => (
-                <div key={log.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: "1px solid #F5EFEF" }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 10, background: "#FFEDEC",
-                    display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0,
-                  }}>📋</div>
+                <div key={log.id} className="db-log-row">
+                  <div className="db-log-ic" style={{ background: "#FFF3F2" }}>📋</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 600 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>
                       {log.steps != null ? `${log.steps.toLocaleString()} steps` : "No steps logged"}
                     </div>
-                    <div style={{ fontSize: 11, color: "#6B7A9A", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div style={{ fontSize: 11, color: "#9AA0AD", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {log.raw_message ?? (
                         [
                           log.protein_g != null ? `protein ${log.protein_g.toFixed(0)}g` : null,
@@ -429,194 +521,175 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ fontSize: 11, color: "#6B7A9A" }}>
+                    <div style={{ fontSize: 11, color: "#9AA0AD" }}>
                       {new Date(log.logged_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                     </div>
-                    <div style={{
-                      display: "inline-block", marginTop: 3, padding: "2px 8px",
-                      borderRadius: 20, fontSize: 10, fontWeight: 600,
-                      background: "#E8F8EE", color: "#3EB86A",
-                    }}>Logged</div>
+                    <div style={{ marginTop: 3, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: "#EAFBF0", color: "#20A865", display: "inline-block" }}>
+                      Logged
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 7, marginTop: 11,
-              padding: "9px 11px", border: "1.5px dashed #EDE6E6", borderRadius: 10,
-              fontSize: 12, color: "#6B7A9A",
-            }}>
-              <span>💬</span>
-              Log more via WhatsApp
-            </div>
           </div>
 
-          {/* Activity donut — triple ring */}
-          <div style={{ background: "#fff", borderRadius: 16, padding: "17px 19px", boxShadow: "0 2px 12px rgba(26,20,20,.07)" }}>
-            <div style={{ fontSize: 14.5, fontWeight: 600 }}>Activity Summary</div>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 8 }}>
-              <TripleDonut
-                stepPct={stepGoalPct}
-                proteinPct={Math.min(Math.round((proteinAvg / 50) * 100), 100)}
-                carbsPct={Math.min(Math.round((carbsAvg / 200) * 100), 100)}
-              />
-            </div>
-            {/* Legend */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: 8 }}>
-              {[
-                { color: "#4A8FE2", label: "Steps",   val: `${avgSteps ? avgSteps.toLocaleString() : "—"} / 10k avg` },
-                { color: "#3EB86A", label: "Protein", val: `${proteinAvg ? proteinAvg.toFixed(0) : "—"}g / 50g` },
-                { color: "#F5A623", label: "Carbs",   val: `${carbsAvg ? carbsAvg.toFixed(0) : "—"}g / 200g` },
-              ].map((row) => (
-                <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: "#6B7A9A" }}>
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: row.color }} />
-                    {row.label}
-                  </div>
-                  <div style={{ fontSize: 12.5, fontWeight: 600 }}>{row.val}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Progress row */}
-        <div className="progress-grid" style={{ display: "grid", gridTemplateColumns: "1fr 272px", gap: 13 }}>
-          <div style={{ background: "#fff", borderRadius: 16, padding: "17px 19px", boxShadow: "0 2px 12px rgba(26,20,20,.07)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 13 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 600 }}>Steps Trend (7 days)</div>
-            </div>
-            <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-.4px" }}>
-                {avgSteps ? avgSteps.toLocaleString() : "—"}
+          {/* Col 3 — Activity donut + AI insights */}
+          <div className="db-col">
+            <div className="db-card db-card-pad">
+              <div className="db-card-h" style={{ marginBottom: 8 }}>
+                <div className="db-card-title">🎯 Activity</div>
               </div>
-              <div style={{ fontSize: 12, color: "#6B7A9A" }}>Steps (avg)</div>
+              <div style={{ display: "flex", justifyContent: "center", marginTop: 4 }}>
+                <TripleDonut stepPct={stepGoalPct} proteinPct={proteinPct} carbsPct={carbsPct} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: 14 }}>
+                {([
+                  { color: "#FF6B6B", label: "Steps",   val: `${avgSteps ? avgSteps.toLocaleString() : "—"} / 10k` },
+                  { color: "#2FBE76", label: "Protein", val: `${proteinAvg ? proteinAvg.toFixed(0) : "—"}g / 50g` },
+                  { color: "#FF9F45", label: "Carbs",   val: `${carbsAvg ? carbsAvg.toFixed(0) : "—"}g / 200g` },
+                ] as const).map((row) => (
+                  <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: "#5A5F6E" }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: row.color }} />
+                      {row.label}
+                    </div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>{row.val}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div style={{ position: "relative", height: 90 }}>
-              <ProgressChart data={weeklySteps} />
-            </div>
-          </div>
 
-          <div style={{
-            background: "linear-gradient(145deg,#FFF5F3,#FFE4DE)",
-            borderRadius: 16, padding: 17, display: "flex", gap: 14,
-            alignItems: "flex-start", boxShadow: "0 2px 12px rgba(26,20,20,.07)",
-          }}>
-            <div style={{ fontSize: 38, lineHeight: 1, flexShrink: 0 }}>🤗</div>
-            <div>
-              <h3 style={{ fontSize: 13.5, fontWeight: 700 }}>
-                {summary && summary.step_goal_hits >= 3
-                  ? "You're on fire! 🔥"
-                  : "Keep going! 🌸"}
-              </h3>
-              <p style={{ fontSize: 12, color: "#6B7A9A", marginTop: 5, lineHeight: 1.6 }}>
-                {summary && summary.last_logged
-                  ? `Last logged ${new Date(summary.last_logged).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}. Consistency is key!`
-                  : "Every step counts — keep sending updates over WhatsApp!"}
-              </p>
+            <div className="db-card db-card-pad">
+              <div className="db-card-h" style={{ marginBottom: 12 }}>
+                <div className="db-card-title">✨ AI Insights</div>
+              </div>
+              {insights.slice(0, 2).map((ins, i) => (
+                <div key={i} className={`db-ai-card ${ins.type}`}>
+                  <div className="db-ai-dot">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white"
+                      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      {ins.type === "good"
+                        ? <path d="M20 6L9 17l-5-5" />
+                        : <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />}
+                    </svg>
+                  </div>
+                  <p>{ins.text}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        <div style={{ marginTop: 20, textAlign: "center" }}>
-          <Link href="/" style={{ fontSize: 12, color: "#6B7A9A" }}>← Back to home</Link>
+        {/* ── Wellness widgets ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 18 }}>
+          <div className="db-widget w-water">
+            <div className="db-w-emoji">💧</div>
+            <div>
+              <div className="db-w-label">Water Intake</div>
+              <div className="db-w-val">—<span className="unit"> L</span></div>
+              <div className="db-w-tag">Coming soon</div>
+            </div>
+            <div className="db-w-art">🌊</div>
+          </div>
+          <div className="db-widget w-sleep">
+            <div className="db-w-emoji">😴</div>
+            <div>
+              <div className="db-w-label">Sleep</div>
+              <div className="db-w-val">—<span className="unit"> hrs</span></div>
+              <div className="db-w-tag">Coming soon</div>
+            </div>
+            <div className="db-w-art">🌙</div>
+          </div>
+          <div className="db-widget w-mood">
+            <div className="db-w-emoji">😊</div>
+            <div>
+              <div className="db-w-label">Mood</div>
+              <div className="db-w-val">—</div>
+              <div className="db-w-tag">Coming soon</div>
+            </div>
+            <div className="db-w-art">⭐</div>
+          </div>
+        </div>
+
+        {/* ── Bottom banner ── */}
+        <div className="db-banner">
+          <div className="db-banner-ic">💬</div>
+          <div>
+            <h3>Track your health in seconds</h3>
+            <p>Send a WhatsApp message with steps, meals, or any update — your dashboard fills in automatically.</p>
+          </div>
+          <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
+            className="db-pill cta"
+            style={{ marginLeft: "auto", height: 46, padding: "0 22px", fontSize: 14, flexShrink: 0 }}>
+            <WaIcon size={16} />
+            Open WhatsApp
+          </a>
+        </div>
+
+        <div style={{ textAlign: "center", paddingTop: 4 }}>
+          <Link href="/" style={{ fontSize: 12, color: "#9AA0AD", fontWeight: 500 }}>← Back to home</Link>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Sidebar (shared between loading / full dashboard) ─────────────────────────
+// ── Sidebar ───────────────────────────────────────────────────────────────────
 
 function Sidebar() {
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <>
-      {/* Mobile top bar */}
-      <div style={{
-        display: "none", position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        background: "#fff", borderBottom: "1px solid #F5EEEE", padding: "12px 16px",
-        alignItems: "center", justifyContent: "space-between",
-      }} className="mobile-topbar">
-        <span style={{ fontSize: 16, fontWeight: 700 }}>
-          Health<em style={{ color: "#E85C5C", fontStyle: "normal" }}>Ease</em>
+      <div className="db-mobile-topbar">
+        <span style={{ fontSize: 17, fontWeight: 800, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          Near<span style={{ color: "#FF6B6B" }}>Care</span>
         </span>
-        <button onClick={() => setOpen(!open)} style={{
-          background: "none", border: "none", cursor: "pointer", padding: 4, fontSize: 22,
-        }}>☰</button>
+        <button onClick={() => setMobileOpen(!mobileOpen)}
+          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, padding: 4, lineHeight: 1 }}>
+          ☰
+        </button>
       </div>
 
-      {/* Overlay */}
-      {open && <div onClick={() => setOpen(false)} style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,.3)", zIndex: 150,
-      }} />}
+      {mobileOpen && (
+        <div onClick={() => setMobileOpen(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.3)", zIndex: 150 }} />
+      )}
 
-      <div style={{
-        width: 214, minHeight: "100vh", background: "#fff",
-        borderRight: "1px solid #F5EEEE", padding: "24px 14px",
-        display: "flex", flexDirection: "column", position: "fixed",
-        top: 0, left: 0, bottom: 0, zIndex: 200,
-        transform: open ? "translateX(0)" : undefined,
-      }} className="sidebar">
-      <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 8px", marginBottom: 26 }}>
-        <div style={{
-          width: 32, height: 32, background: "#E85C5C", borderRadius: 9, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-            <path d="M10 17.2C10 17.2 2.5 12.5 2.5 7.5A5 5 0 0 1 10 3.84 5 5 0 0 1 17.5 7.5C17.5 12.5 10 17.2 10 17.2Z" fill="white" />
-          </svg>
+      <aside className={`db-sidebar${mobileOpen ? " open" : ""}`}>
+        <div className="db-brand">
+          <div className="db-brand-mark">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+              <path d="M12 21C12 21 4 14 4 8.5a8 8 0 0116 0C20 14 12 21 12 21z" fill="white" />
+              <circle cx="12" cy="8.5" r="3" fill="rgba(255,255,255,0.45)" />
+            </svg>
+          </div>
+          <span className="db-brand-name">Near<span className="care">Care</span></span>
         </div>
-        <span style={{ fontSize: 16, fontWeight: 700 }}>
-          Health<em style={{ color: "#E85C5C", fontStyle: "normal" }}>Ease</em>
-        </span>
-      </div>
 
-      <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 2 }}>
-        {navItems.map((item) => (
-          <li key={item.label} title={item.soon ? "Coming soon" : undefined}>
+        <nav className="db-nav">
+          {navItems.map((item) => (
             <a
+              key={item.label}
               href={item.soon ? undefined : item.href}
-              onClick={item.soon ? (e) => e.preventDefault() : undefined}
-              style={{
-                display: "flex", alignItems: "center", gap: 9, padding: "9px 12px",
-                borderRadius: 10, fontSize: 13.5, fontWeight: item.active ? 600 : 500,
-                color: item.active ? "#E85C5C" : item.soon ? "#C8D0DC" : "#6B7A9A",
-                background: item.active ? "#FFEDEC" : "transparent",
-                textDecoration: "none",
-                cursor: item.soon ? "default" : "pointer",
-              }}>
-              <span style={{ opacity: item.soon ? 0.5 : 1 }}>{item.icon}</span>
+              onClick={item.soon
+                ? (e) => e.preventDefault()
+                : () => setMobileOpen(false)}
+              className={`db-nav-item${item.active ? " active" : ""}${item.soon ? " soon" : ""}`}
+            >
+              <NavIcon name={item.label} />
               <span style={{ flex: 1 }}>{item.label}</span>
-              {item.soon && (
-                <span style={{
-                  fontSize: 9, fontWeight: 600, color: "#B0BFCC",
-                  background: "#F5F0F0", padding: "2px 6px", borderRadius: 10,
-                }}>Soon</span>
-              )}
+              {item.soon && <span className="db-soon-badge">Soon</span>}
             </a>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </nav>
 
-      <div style={{ marginTop: "auto", paddingTop: 14 }}>
-        <div style={{ background: "linear-gradient(145deg,#FFF5F3,#FFE4DE)", borderRadius: 14, padding: 16 }}>
-          <div style={{ fontSize: 26, marginBottom: 8 }}>🌱</div>
-          <h4 style={{ fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>Stay consistent,<br />see the change!</h4>
-          <p style={{ fontSize: 11.5, color: "#6B7A9A", marginTop: 5, lineHeight: 1.5 }}>Small steps today,<br />a healthier tomorrow.</p>
+        <div className="db-motiv">
+          <span className="leaf">🌱</span>
+          <h4>Stay consistent,<br />see the change!</h4>
+          <p>Small steps today,<br />a healthier tomorrow.</p>
         </div>
-      </div>
-    </div>
-    <style>{`
-      @media (max-width: 768px) {
-        .sidebar { transform: translateX(-100%); transition: transform .25s ease; }
-        .mobile-topbar { display: flex !important; }
-        .dashboard-main { margin-left: 0 !important; padding-top: 64px !important; }
-        .stat-grid { grid-template-columns: 1fr !important; }
-        .chart-grid { grid-template-columns: 1fr !important; }
-        .progress-grid { grid-template-columns: 1fr !important; }
-      }
-    `}</style>
+      </aside>
     </>
   );
 }
