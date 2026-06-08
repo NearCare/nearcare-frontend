@@ -206,6 +206,17 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFamilyCard, setShowFamilyCard] = useState(false);
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem("family_card_dismissed");
+    if (!dismissed) setShowFamilyCard(true);
+  }, []);
+
+  const dismissFamilyCard = () => {
+    localStorage.setItem("family_card_dismissed", "1");
+    setShowFamilyCard(false);
+  };
 
   useEffect(() => {
     (async () => {
@@ -417,6 +428,110 @@ export default function DashboardPage() {
             <div className="db-kpi-sub">Days step goal hit this week</div>
           </div>
         </div>
+
+        {/* ── Family card ── */}
+        {showFamilyCard && (
+          <div style={{
+            position: "relative",
+            background: "linear-gradient(135deg, #EEF0FF 0%, #F5F0FF 60%, #FFF0FA 100%)",
+            border: "1.5px solid #DDD8FF",
+            borderRadius: 22,
+            padding: "28px 32px",
+            display: "flex",
+            alignItems: "center",
+            gap: 28,
+            overflow: "hidden",
+          }}>
+            {/* "Start here!" bubble */}
+            <div style={{
+              position: "absolute",
+              top: 18,
+              right: 24,
+              background: "#7C6FF7",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 800,
+              padding: "5px 14px",
+              borderRadius: 20,
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              boxShadow: "0 3px 12px rgba(124,111,247,0.35)",
+            }}>
+              ✨ Start here!
+            </div>
+
+            {/* Illustration */}
+            <div style={{
+              fontSize: 68,
+              lineHeight: 1,
+              flexShrink: 0,
+              filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.08))",
+              userSelect: "none",
+            }}>
+              👨‍👩‍👦
+            </div>
+
+            {/* Text + actions */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: "#2C2F3A", margin: "0 0 6px", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                Health is better together!
+              </h2>
+              <p style={{ fontSize: 14, color: "#5A5F6E", margin: "0 0 20px", lineHeight: 1.6, maxWidth: 440 }}>
+                Add your family members to track everyone&apos;s health, set goals together and keep each other motivated.
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <button style={{
+                  background: "#7C6FF7",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "11px 22px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 7,
+                  boxShadow: "0 4px 14px rgba(124,111,247,0.35)",
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}
+                  onClick={() => alert("Coming soon! 🚀")}
+                >
+                  <span style={{ fontSize: 16 }}>+</span> Add Family Member
+                </button>
+                <button
+                  onClick={dismissFamilyCard}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13.5, color: "#9AA0AD", fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </div>
+
+            {/* Decorative blobs */}
+            <div style={{
+              position: "absolute",
+              bottom: -30,
+              right: -30,
+              width: 140,
+              height: 140,
+              borderRadius: "50%",
+              background: "rgba(124,111,247,0.08)",
+              pointerEvents: "none",
+            }} />
+            <div style={{
+              position: "absolute",
+              top: -20,
+              left: 160,
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              background: "rgba(124,111,247,0.06)",
+              pointerEvents: "none",
+            }} />
+          </div>
+        )}
 
         {/* ── 3-column grid ── */}
         <div className="db-grid">
