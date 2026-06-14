@@ -126,17 +126,73 @@ export async function getUserLogs(
  * Returns null when the backend reports "No data given yet".
  */
 export async function getUserSummary(userId: string): Promise<Summary | null> {
-  try {
-    // Backend returns { message: "No data given yet" } when logs are empty —
-    // we catch that and normalise to null.
-    const data = await apiFetch<Summary | { message: string }>(
-      `/api/users/${userId}/summary`
-    );
-    if ("message" in data) return null;
-    return data as Summary;
-  } catch {
-    return null;
+  // Backend returns { message: "No data given yet" } when logs are empty —
+  // we catch that and normalise to null. Any real network/server error
+  // is re-thrown so the dashboard can surface it.
+  const data = await apiFetch<Summary | { message: string }>(
+    `/api/users/${userId}/summary`
+  );
+  if ("message" in data) return null;
+  return data as Summary;
+}
+
+// ─── Family ──────────────────────────────────────────────────────────────────
+
+export type FamilyMember = {
+  id: string;
+  phone: string;
+  name: string | null;
+  label: string;
+  type: string;
+  status: string;   // "pending" | "active"
+  created_at: string;
+};
+
+async function authedFetch<T>(path: string, token: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      ...(options?.headers ?? {}),
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? `API ${path} → ${res.status}`);
   }
+  return res.json() as Promise<T>;
+}
+
+export async function inviteFamilyMember(
+  phone: string, label: string, type: string, token: string
+): Promise<FamilyMember> {
+  return authedFetch<FamilyMember>("/family/invite", token, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, label, type }),
+  });
+}
+
+export async function getFamilyMembers(token: string): Promise<FamilyMember[]> {
+  const data = await authedFetch<{ members: FamilyMember[] }>("/family/members", token);
+  return data.members;
+}
+
+export async function getMemberSummary(memberId: string, token: string): Promise<Summary | null> {
+  const data = await authedFetch<Summary | { message: string }>(
+    `/family/members/${memberId}/summary`, token
+  );
+  if ("message" in data) return null;
+  return data as Summary;
+}
+
+export async function getMemberLogs(memberId: string, token: string, days = 7): Promise<HealthLog[]> {
+  const data = await authedFetch<{ logs: HealthLog[] }>(
+    `/family/members/${memberId}/logs?days=${days}`, token
+  );
+  return data.logs;
 }
 
 // ─── Derived helpers used by the dashboard ───────────────────────────────────
@@ -157,7 +213,7 @@ export function logsToWeeklySteps(
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const key = d.toISOString().split("T")[0];
+    const key = d.toLocaleDateString("en-CA"); // "YYYY-MM-DD" in local timezone
     result.push({
       label: days[d.getDay() === 0 ? 6 : d.getDay() - 1],
       value: byDate[key] ?? 0,
