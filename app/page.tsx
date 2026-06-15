@@ -505,6 +505,19 @@ export default function LandingPage() {
           }}>Get Started for Free</Link>
         </div>
       </div>
+
+      {/* Footer */}
+      <div style={{
+        borderTop: "1px solid #F5EEEE", padding: "20px 56px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: "#fff",
+      }}>
+        <span style={{ fontSize: 13, color: "#6B7A9A" }}>© 2026 NearCare. All rights reserved.</span>
+        <div style={{ display: "flex", gap: 24 }}>
+          <Link href="/privacy" style={{ fontSize: 13, color: "#6B7A9A", textDecoration: "none" }}>Privacy Policy</Link>
+          <a href="mailto:mailforsamarth@gmail.com" style={{ fontSize: 13, color: "#6B7A9A", textDecoration: "none" }}>Contact</a>
+        </div>
+      </div>
     </div>
   );
 }
