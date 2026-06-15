@@ -1,4 +1,11 @@
+"use client";
 import Link from "next/link";
+import {
+  House, TrendUp, ForkKnife, Lightning, ClipboardText, Trophy,
+  Bell, Gear, CalendarBlank, Fire, Lock, MapPin, Users,
+  ChatDots, ChartBar, Target, Heart, UserCircle,
+} from "@phosphor-icons/react";
+import { FEShoe, FETarget } from "./dashboard/components/FluentEmoji";
 
 const HeartIcon = () => (
   <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
@@ -42,9 +49,9 @@ const DashboardMockup = () => (
         Hello, Priya! 👋 <small style={{ fontSize: 9.5, color: "#6B7A9A", fontWeight: 400, display: "block", marginTop: 1 }}>Here&apos;s your health summary for today.</small>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-        <div style={{ background: "#fff", border: "1px solid #EDE6E6", borderRadius: 6, padding: "4px 9px", fontSize: 9, color: "#6B7A9A" }}>📅 Today, {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} ▾</div>
-        <div style={{ width: 26, height: 26, background: "#fff", border: "1px solid #EDE6E6", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", fontSize: 12 }}>
-          🔔<div style={{ position: "absolute", top: 4, right: 5, width: 5, height: 5, background: "#E85C5C", borderRadius: "50%", border: "1.5px solid #fff" }}></div>
+        <div style={{ background: "#fff", border: "1px solid #EDE6E6", borderRadius: 6, padding: "4px 9px", fontSize: 9, color: "#6B7A9A", display: "flex", alignItems: "center", gap: 4 }}><CalendarBlank size={9} weight="bold" /> Today, {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} ▾</div>
+        <div style={{ width: 26, height: 26, background: "#fff", border: "1px solid #EDE6E6", borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+          <Bell size={12} weight="bold" color="#6B7A9A" /><div style={{ position: "absolute", top: 4, right: 5, width: 5, height: 5, background: "#E85C5C", borderRadius: "50%", border: "1.5px solid #fff" }}></div>
         </div>
         <div style={{ width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg,#FFD0C8,#FF9E9E)", fontSize: 9, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>P</div>
       </div>
@@ -55,14 +62,14 @@ const DashboardMockup = () => (
       {/* Sidebar */}
       <div style={{ width: 100, borderRight: "1px solid #F5EEEE", padding: "8px 6px", display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 }}>
         {[
-          { icon: "🏠", label: "Home", active: true },
-          { icon: "📈", label: "Progress" },
-          { icon: "🍽", label: "Meals" },
-          { icon: "🏃", label: "Activity" },
-          { icon: "📋", label: "Reports" },
-          { icon: "🏆", label: "Achievements" },
-          { icon: "🔔", label: "Reminders" },
-          { icon: "⚙️", label: "Settings" },
+          { icon: <House size={10} weight="bold" />, label: "Home", active: true },
+          { icon: <TrendUp size={10} weight="bold" />, label: "Progress" },
+          { icon: <ForkKnife size={10} weight="bold" />, label: "Meals" },
+          { icon: <Lightning size={10} weight="bold" />, label: "Activity" },
+          { icon: <ClipboardText size={10} weight="bold" />, label: "Reports" },
+          { icon: <Trophy size={10} weight="bold" />, label: "Achievements" },
+          { icon: <Bell size={10} weight="bold" />, label: "Reminders" },
+          { icon: <Gear size={10} weight="bold" />, label: "Settings" },
         ].map((item) => (
           <div key={item.label} style={{
             display: "flex", alignItems: "center", gap: 5, padding: "5px 7px",
@@ -74,7 +81,7 @@ const DashboardMockup = () => (
           </div>
         ))}
         <div style={{ background: "linear-gradient(145deg,#FFF5F3,#FFE4DE)", borderRadius: 9, padding: 9, marginTop: "auto" }}>
-          <div style={{ fontSize: 18, marginBottom: 4 }}>🌱</div>
+          <div style={{ fontSize: 18, marginBottom: 4 }}>🌿</div>
           <h5 style={{ fontSize: 9, fontWeight: 700, lineHeight: 1.3 }}>Keep going!</h5>
           <p style={{ fontSize: 8, color: "#6B7A9A", marginTop: 2, lineHeight: 1.4 }}>You&apos;re doing amazing.</p>
         </div>
@@ -85,9 +92,9 @@ const DashboardMockup = () => (
         {/* Stat cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 7 }}>
           {[
-            { icon: "🥗", label: "Meals Logged", color: "#E85C5C", val: "3", sub: "Today", pct: 100, colorClass: "r" },
-            { icon: "👟", label: "Steps Today", color: "#4A8FE2", val: "6,842", sub: "Today", pct: 68, colorClass: "b", blue: true },
-            { icon: "🔥", label: "Calories Burned", color: "#F5A623", val: "1,650", sub: "Today", pct: 83, colorClass: "o" },
+            { icon: <ForkKnife size={18} weight="bold" color="#E85C5C" />, label: "Meals Logged", color: "#E85C5C", val: "3", sub: "Today", pct: 100, colorClass: "r" },
+            { icon: <FEShoe size={20} />, label: "Steps Today", color: "#4A8FE2", val: "6,842", sub: "Today", pct: 68, colorClass: "b", blue: true },
+            { icon: <Fire size={18} weight="bold" color="#F5A623" />, label: "Calories Burned", color: "#F5A623", val: "1,650", sub: "Today", pct: 83, colorClass: "o" },
           ].map((stat) => (
             <div key={stat.label} style={{
               background: stat.blue ? "linear-gradient(145deg,#EBF3FF,#D4E8FF)" : "#fff",
@@ -95,7 +102,7 @@ const DashboardMockup = () => (
               borderRadius: 9, padding: "9px 10px",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <div style={{ fontSize: 20 }}>{stat.icon}</div>
+                <div style={{ display: "flex", alignItems: "center" }}>{stat.icon}</div>
                 <div>
                   <div style={{ fontSize: 7.5, fontWeight: 600, color: stat.color }}>{stat.label}</div>
                   <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-.3px", lineHeight: 1.1, marginTop: 2 }}>{stat.val}</div>
@@ -148,12 +155,12 @@ const DashboardMockup = () => (
               <span style={{ fontSize: 7.5, color: "#E85C5C", fontWeight: 600 }}>View all</span>
             </div>
             {[
-              { icon: "🥗", name: "Breakfast", sub: "Oatmeal with berries", time: "8:30 AM" },
-              { icon: "🍱", name: "Lunch", sub: "Brown rice, dal, veggies", time: "1:00 PM" },
-              { icon: "🍗", name: "Dinner", sub: "Grilled chicken, salad", time: "7:30 PM" },
+              { icon: <ForkKnife size={11} weight="bold" color="#E85C5C" />, name: "Breakfast", sub: "Oatmeal with berries", time: "8:30 AM" },
+              { icon: <ForkKnife size={11} weight="bold" color="#E85C5C" />, name: "Lunch", sub: "Brown rice, dal, veggies", time: "1:00 PM" },
+              { icon: <ForkKnife size={11} weight="bold" color="#E85C5C" />, name: "Dinner", sub: "Grilled chicken, salad", time: "7:30 PM" },
             ].map((meal) => (
               <div key={meal.name} style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 0", borderBottom: "1px solid #F5EFEF" }}>
-                <div style={{ fontSize: 12, width: 16, textAlign: "center" }}>{meal.icon}</div>
+                <div style={{ width: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>{meal.icon}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 8.5, fontWeight: 600 }}>{meal.name}</div>
                   <div style={{ fontSize: 7.5, color: "#6B7A9A" }}>{meal.sub}</div>
@@ -281,7 +288,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section style={{
         display: "flex", alignItems: "center", padding: "48px 60px",
-        gap: 48, overflow: "hidden", flex: 1,
+        gap: 28, overflow: "hidden", flex: 1,
       }}>
         {/* Left */}
         <div style={{ flex: "0 0 480px", position: "relative" }}>
@@ -316,10 +323,12 @@ export default function LandingPage() {
               borderRadius: 8, fontSize: 15, fontWeight: 700,
               boxShadow: "0 4px 18px rgba(232,92,92,.32)",
             }}>Get Started for Free</Link>
-            <button style={{
-              display: "flex", alignItems: "center", gap: 10, background: "none", border: "none",
-              fontSize: 14, fontWeight: 600, color: "#6B7A9A", cursor: "pointer",
-            }}>
+            <button
+              onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
+              style={{
+                display: "flex", alignItems: "center", gap: 10, background: "none", border: "none",
+                fontSize: 14, fontWeight: 600, color: "#6B7A9A", cursor: "pointer",
+              }}>
               <div style={{
                 width: 32, height: 32, background: "#fff", borderRadius: "50%",
                 boxShadow: "0 2px 12px rgba(26,20,20,.07)",
@@ -329,21 +338,21 @@ export default function LandingPage() {
                   <path d="M1 1l8 5-8 5V1z" fill="#1A2744" />
                 </svg>
               </div>
-              Watch how it works
+              See how it works
             </button>
           </div>
 
           <div style={{ display: "flex", gap: 20, marginTop: 32 }}>
             {[
-              { bg: "#EBF3FF", icon: "🔒", title: "Private & Secure", desc: "Your data is always\nsafe with us" },
-              { bg: "#E8F8EE", icon: "📍", title: "Nearby Providers", desc: "Find clinics and\ndoctors near you" },
-              { bg: "#FFEDEC", icon: "👨‍👩‍👧", title: "For the Whole Family", desc: "Healthy habits,\ntogether" },
+              { bg: "#EBF3FF", icon: <Lock size={13} weight="bold" color="#4A8FE2" />, title: "Private & Secure", desc: "Your data is always\nsafe with us" },
+              { bg: "#E8F8EE", icon: <MapPin size={13} weight="bold" color="#3EB86A" />, title: "Nearby Providers", desc: "Find clinics and\ndoctors near you" },
+              { bg: "#FFEDEC", icon: <Users size={13} weight="bold" color="#E85C5C" />, title: "For the Whole Family", desc: "Healthy habits,\ntogether" },
             ].map((t) => (
               <div key={t.title} style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: 8, background: t.bg,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 13, flexShrink: 0, marginTop: 2,
+                  flexShrink: 0, marginTop: 2,
                 }}>{t.icon}</div>
                 <div>
                   <strong style={{ fontSize: 12.5, fontWeight: 700, display: "block" }}>{t.title}</strong>
@@ -356,14 +365,20 @@ export default function LandingPage() {
           </div>
         </div>
 
+        {/* Center — WhatsApp circle */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/whats_app_circle.png" alt="Log health via WhatsApp" style={{ width: 280, height: 280, objectFit: "contain" }} />
+        </div>
+
         {/* Right — mockup */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <DashboardMockup />
         </div>
       </section>
 
       {/* Features */}
-      <section style={{ background: "#FFF8F7", padding: "52px 60px 60px" }}>
+      <section id="features" style={{ background: "#FFF8F7", padding: "52px 60px 60px" }}>
         <div style={{
           fontSize: 22, fontWeight: 700, textAlign: "center", color: "#1A2744",
           marginBottom: 32, display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
@@ -378,11 +393,11 @@ export default function LandingPage() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12 }}>
           {[
-            { bg: "#E6F9EE", icon: "💬", title: "Track Health", desc: "Log vitals, steps and appointments easily from anywhere, anytime." },
-            { bg: "#FFEDEC", icon: "📊", title: "Beautiful Insights", desc: "Visualize your progress with easy-to-understand charts and summaries." },
-            { bg: "#EBF3FF", icon: "🎯", title: "Set Goals", desc: "Set daily goals for steps, meals and activity. We'll help you stay on track." },
-            { bg: "#FFF8E0", icon: "🏆", title: "Celebrate Progress", desc: "Earn achievements and stay motivated every step of the way." },
-            { bg: "#F0EEFF", icon: "🔒", title: "Secure & Private", desc: "Your data is encrypted and never shared with anyone." },
+            { bg: "#E6F9EE", icon: <ChatDots size={22} weight="bold" color="#3EB86A" />, title: "Track Health", desc: "Log vitals, steps and appointments easily from anywhere, anytime." },
+            { bg: "#FFEDEC", icon: <ChartBar size={22} weight="bold" color="#E85C5C" />, title: "Beautiful Insights", desc: "Visualize your progress with easy-to-understand charts and summaries." },
+            { bg: "#EBF3FF", icon: <FETarget size={22} />, title: "Set Goals", desc: "Set daily goals for steps, meals and activity. We'll help you stay on track." },
+            { bg: "#FFF8E0", icon: <Trophy size={22} weight="bold" color="#F5A623" />, title: "Celebrate Progress", desc: "Earn achievements and stay motivated every step of the way." },
+            { bg: "#F0EEFF", icon: <Lock size={22} weight="bold" color="#7C6FF7" />, title: "Secure & Private", desc: "Your data is encrypted and never shared with anyone." },
           ].map((f) => (
             <div key={f.title} style={{
               background: "#fff", borderRadius: 14, padding: "20px 14px", textAlign: "center",
@@ -391,7 +406,7 @@ export default function LandingPage() {
               <div style={{
                 width: 50, height: 50, borderRadius: "50%", background: f.bg,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, margin: "0 auto 12px",
+                margin: "0 auto 12px",
               }}>{f.icon}</div>
               <h4 style={{ fontSize: 13, fontWeight: 700 }}>{f.title}</h4>
               <p style={{ fontSize: 11, color: "#6B7A9A", lineHeight: 1.65, marginTop: 5 }}>{f.desc}</p>
@@ -410,24 +425,13 @@ export default function LandingPage() {
           <div style={{ position: "absolute", top: -60, right: -60, width: 240, height: 240, background: "rgba(232,92,92,.06)", borderRadius: "50%" }} />
           <div style={{ position: "absolute", bottom: -40, left: 380, width: 180, height: 180, background: "rgba(232,92,92,.04)", borderRadius: "50%" }} />
 
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/family-sunset.png"
-            alt="Family health"
-            style={{
-              width: 380, flexShrink: 0, borderRadius: 20,
-              boxShadow: "0 12px 48px rgba(26,20,20,.14)",
-              position: "relative", zIndex: 1,
-            }}
-          />
-
           <div style={{ position: "relative", zIndex: 1 }}>
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 7, background: "#FFEDEC",
               color: "#E85C5C", fontSize: 12, fontWeight: 600, padding: "5px 13px",
               borderRadius: 20, marginBottom: 18,
             }}>
-              ❤️ Built for Indian families
+              <Heart size={12} weight="bold" /> Built for Indian families
             </div>
             <h2 style={{ fontSize: 36, fontWeight: 700, lineHeight: 1.15, letterSpacing: "-.5px", color: "#1A2744" }}>
               Health tracking that<br />
@@ -438,15 +442,15 @@ export default function LandingPage() {
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 28 }}>
               {[
-                { icon: "💬", text: "Works in Hindi, English or both mixed" },
-                { icon: "👴", text: "Designed for parents who don't use apps" },
-                { icon: "📊", text: "You see the dashboard, they just WhatsApp" },
+                { icon: <ChatDots size={16} weight="bold" color="#E85C5C" />, text: "Works in Hindi, English or both mixed" },
+                { icon: <UserCircle size={16} weight="bold" color="#E85C5C" />, text: "Designed for parents who don't use apps" },
+                { icon: <ChartBar size={16} weight="bold" color="#E85C5C" />, text: "You see the dashboard, they just WhatsApp" },
               ].map((item) => (
                 <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: 10, background: "#fff",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 16, boxShadow: "0 2px 8px rgba(26,20,20,.08)", flexShrink: 0,
+                    boxShadow: "0 2px 8px rgba(26,20,20,.08)", flexShrink: 0,
                   }}>{item.icon}</div>
                   <span style={{ fontSize: 14, color: "#4A5568", fontWeight: 500 }}>{item.text}</span>
                 </div>
@@ -457,6 +461,18 @@ export default function LandingPage() {
               background: "#E85C5C", color: "#fff", borderRadius: 8,
               fontSize: 14, fontWeight: 700, boxShadow: "0 4px 14px rgba(232,92,92,.3)",
             }}>Get Started Free →</Link>
+          </div>
+
+          <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 1 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/family_walking.png"
+              alt="Family health"
+              style={{
+                width: 480, borderRadius: 20,
+                boxShadow: "0 12px 48px rgba(26,20,20,.14)",
+              }}
+            />
           </div>
         </div>
       </section>
@@ -487,6 +503,19 @@ export default function LandingPage() {
             borderRadius: 8, fontSize: 14, fontWeight: 700,
             boxShadow: "0 4px 14px rgba(232,92,92,.3)",
           }}>Get Started for Free</Link>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        borderTop: "1px solid #F5EEEE", padding: "20px 56px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: "#fff",
+      }}>
+        <span style={{ fontSize: 13, color: "#6B7A9A" }}>© 2026 NearCare. All rights reserved.</span>
+        <div style={{ display: "flex", gap: 24 }}>
+          <Link href="/privacy" style={{ fontSize: 13, color: "#6B7A9A", textDecoration: "none" }}>Privacy Policy</Link>
+          <a href="mailto:mailforsamarth@gmail.com" style={{ fontSize: 13, color: "#6B7A9A", textDecoration: "none" }}>Contact</a>
         </div>
       </div>
     </div>
