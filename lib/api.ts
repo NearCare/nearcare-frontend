@@ -100,14 +100,6 @@ export async function verifyOtp(
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
- * Returns all registered users (family members tracked via WhatsApp).
- */
-export async function getUsers(): Promise<User[]> {
-  const data = await apiFetch<{ users: User[] }>("/api/users");
-  return data.users;
-}
-
-/**
  * Returns raw daily health logs for a user.
  * @param days  How many past days to fetch (default 30)
  */
