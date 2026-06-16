@@ -96,6 +96,14 @@ export const FEChat = ({ size = 28 }: { size?: number }) => (
   </svg>
 );
 
+export const FEFlame = ({ size = 28 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 30c6 0 10-4.2 10-9.6 0-4.4-2.6-7-4.4-9.8-.4 2-1.6 3.4-2.6 4.2.4-3.4-.8-7.6-4-9.8.6 3-1 5.4-3 7.6C9.8 14.8 8 17 8 20.4 8 25.8 10 30 16 30Z" fill="#FF7A33"/>
+    <path d="M16 30c4.2 0 7-3 7-6.8 0-3-1.6-4.8-2.8-6.6-.4 1.6-1.2 2.4-2 3 .2-2.4-.6-5-2.4-6.4.2 2-1 3.8-2.2 5.2-1.4 1.6-2.6 3-2.6 4.8 0 3.8 1.8 6.8 5 6.8Z" fill="#FFB23D"/>
+    <path d="M16 28c2.4 0 4-1.8 4-4 0-1.6-.9-2.6-1.6-3.6-.3 1-.8 1.4-1.2 1.7.1-1.4-.4-2.8-1.4-3.6.1 1.1-.6 2.1-1.3 2.9-.8.9-1.5 1.7-1.5 2.6 0 2.2 1 4 3 4Z" fill="#FFD93D"/>
+  </svg>
+);
+
 export const FESmartphone = ({ size = 28 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="8" y="3" width="16" height="26" rx="3" fill="#5A8DEF"/>

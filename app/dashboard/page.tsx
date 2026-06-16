@@ -13,13 +13,14 @@ import {
 } from "@phosphor-icons/react";
 import {
   FEDroplet, FEMoon, FESmile,
-  FEShoe, FEMeat, FEWheat, FETarget, FEChat,
+  FEShoe, FEMeat, FEWheat, FEChat, FEFlame,
 } from "./components/FluentEmoji";
 import {
   getUserLogs,
   getUserSummary,
   getFamilyMembers,
   logsToWeeklySteps,
+  calculateStreak,
   type User,
   type HealthLog,
   type Summary,
@@ -194,7 +195,7 @@ export default function DashboardPage() {
         setUser(authUser);
         const token = localStorage.getItem("auth_token") ?? "";
         const [fetchedLogs, fetchedSummary, fetchedMembers] = await Promise.all([
-          getUserLogs(authUser.id, 7),
+          getUserLogs(authUser.id, 30),
           getUserSummary(authUser.id),
           getFamilyMembers(token).catch((err) => {
             if (err?.message === "Unauthorized") throw err;
@@ -224,6 +225,7 @@ export default function DashboardPage() {
   const proteinPct   = Math.min(Math.round((proteinAvg / 50) * 100), 100);
   const caloriesPct  = Math.min(Math.round((caloriesAvg / 2000) * 100), 100);
   const goalHits     = summary?.step_goal_hits ?? 0;
+  const streak       = useMemo(() => calculateStreak(logs), [logs]);
 
   // ── Loading ─────────────────────────────────────────────────────────────────
   if (loading) {
@@ -383,16 +385,16 @@ export default function DashboardPage() {
 
           <div className="db-kpi k-green">
             <div className="db-kpi-top">
-              <div className="db-kpi-ic" style={{ background: "#D8F5E4" }}><FETarget size={20} /></div>
-              <span className="db-kpi-label">Goal Hits</span>
+              <div className="db-kpi-ic" style={{ background: "#FFE9D2" }}><FEFlame size={20} /></div>
+              <span className="db-kpi-label">Streak</span>
             </div>
             <div className="db-kpi-val">
-              {goalHits}<span className="unit">/ 7</span>
+              {streak}<span className="unit">{streak === 1 ? " day" : " days"}</span>
             </div>
             <div className="db-bar-track">
-              <div className="db-bar-fill" style={{ width: `${(goalHits / 7) * 100}%`, background: "#2FBE76" }} />
+              <div className="db-bar-fill" style={{ width: `${Math.min((streak / 7) * 100, 100)}%`, background: "#FF7A33" }} />
             </div>
-            <div className="db-kpi-sub">Days step goal hit this week</div>
+            <div className="db-kpi-sub">{streak > 0 ? "Keep it going! 🔥" : "Log today to start a streak"}</div>
           </div>
         </div>
 
