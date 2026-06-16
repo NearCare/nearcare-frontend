@@ -182,7 +182,7 @@ export default function LoginPage() {
                     width: "100%", padding: "13px 14px 13px 44px",
                     border: "1.5px solid #EDE6E6", borderRadius: 8,
                     fontSize: 14, fontFamily: "inherit",
-                    color: phone.length === 10 ? "#1A2744" : "#B0BFCC",
+                    color: "#1A2744",
                     background: "#FAFAFA", outline: "none", boxSizing: "border-box",
                     transition: "color .2s",
                   }}
