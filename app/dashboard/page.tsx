@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip as ReTooltip,
   ResponsiveContainer, CartesianGrid,
@@ -9,17 +9,18 @@ import {
   House, TrendUp, CalendarDots, MapPin, FileText,
   Lightning, Bell, Gear, CalendarBlank, CaretRight,
   Check, CheckCircle, Warning, X as PhX, List,
-  Users, ChartBar, ClipboardText, Scroll, Sparkle, Target,
+  Users, ChartBar, ClipboardText, Scroll, Sparkle, Target, SignOut,
 } from "@phosphor-icons/react";
 import {
   FEDroplet, FEMoon, FESmile,
-  FEShoe, FEMeat, FEWheat, FETarget, FEChat,
+  FEShoe, FEMeat, FEWheat, FEChat, FEFlame,
 } from "./components/FluentEmoji";
 import {
   getUserLogs,
   getUserSummary,
   getFamilyMembers,
   logsToWeeklySteps,
+  calculateStreak,
   type User,
   type HealthLog,
   type Summary,
@@ -90,15 +91,15 @@ function StepsChart({ data }: { data: { label: string; value: number }[] }) {
   );
 }
 
-function TripleDonut({ stepPct, proteinPct, carbsPct }: {
-  stepPct: number; proteinPct: number; carbsPct: number;
+function TripleDonut({ stepPct, proteinPct, caloriesPct }: {
+  stepPct: number; proteinPct: number; caloriesPct: number;
 }) {
   const size = 152;
   const cx = size / 2, cy = size / 2;
   const rings = [
     { r: 64, stroke: "#FF6B6B", track: "#FFE7E6", pct: stepPct },
     { r: 49, stroke: "#2FBE76", track: "#EAFBF0", pct: proteinPct },
-    { r: 34, stroke: "#FF9F45", track: "#FFF4E8", pct: carbsPct },
+    { r: 34, stroke: "#FF9F45", track: "#FFF4E8", pct: caloriesPct },
   ];
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -129,16 +130,86 @@ function TripleDonut({ stepPct, proteinPct, carbsPct }: {
   );
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Loading screen ───────────────────────────────────────────────────────────
 
-function Skel({ w = "100%", h = 20, r = 6 }: { w?: string | number; h?: number; r?: number }) {
+function DashboardLoadingScreen() {
+  const [progress, setProgress] = useState(8);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 92) return p;
+        const step = p < 50 ? 4 : p < 75 ? 2 : 1;
+        return Math.min(p + step, 92);
+      });
+    }, 180);
+    return () => clearInterval(id);
+  }, []);
+
+  const orbitIcons = [
+    { icon: <FEShoe size={24} />, bg: "#EAFBF0", style: { top: 4, left: 6 } },
+    { icon: <FEDroplet size={24} />, bg: "#EAF4FF", style: { top: 4, right: 6 } },
+    { icon: <FEFlame size={24} />, bg: "#FFF1E6", style: { bottom: 4, left: 6 } },
+    { icon: <FEMoon size={24} />, bg: "#F0EEFF", style: { bottom: 4, right: 6 } },
+  ];
+
   return (
-    <div style={{
-      width: w, height: h, borderRadius: r,
-      background: "linear-gradient(90deg,#F5EEEE 25%,#EFE8E8 50%,#F5EEEE 75%)",
-      backgroundSize: "200% 100%",
-      animation: "shimmer 1.4s infinite",
-    }} />
+    <div style={{ textAlign: "center", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <div style={{ position: "relative", width: 220, height: 200, margin: "0 auto" }}>
+        <svg width="220" height="200" style={{ position: "absolute", inset: 0 }} viewBox="0 0 220 200">
+          <line x1="58" y1="38" x2="98" y2="88" stroke="#F0D9D9" strokeWidth="2" strokeDasharray="3 6" strokeLinecap="round" />
+          <line x1="162" y1="38" x2="122" y2="88" stroke="#F0D9D9" strokeWidth="2" strokeDasharray="3 6" strokeLinecap="round" />
+          <line x1="58" y1="162" x2="98" y2="112" stroke="#F0D9D9" strokeWidth="2" strokeDasharray="3 6" strokeLinecap="round" />
+          <line x1="162" y1="162" x2="122" y2="112" stroke="#F0D9D9" strokeWidth="2" strokeDasharray="3 6" strokeLinecap="round" />
+        </svg>
+
+        {orbitIcons.map((o, i) => (
+          <div key={i} style={{
+            position: "absolute", ...o.style,
+            width: 50, height: 50, borderRadius: "50%", background: o.bg,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 14px rgba(0,0,0,.06)",
+          }}>
+            {o.icon}
+          </div>
+        ))}
+
+        <span style={{ position: "absolute", top: 34, left: 4, fontSize: 13, color: "#FF9F45", animation: "dbSparkle 1.8s ease-in-out infinite" }}>✦</span>
+        <span style={{ position: "absolute", top: 34, right: 4, fontSize: 13, color: "#7C6FF7", animation: "dbSparkle 1.8s ease-in-out infinite .4s" }}>✦</span>
+
+        <div style={{
+          position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+          width: 84, height: 84, borderRadius: "50%",
+          background: "linear-gradient(150deg, #FF8A7A, #E85C5C)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 10px 26px rgba(232,92,92,.35)",
+          animation: "dbHeartBeat 1.4s ease-in-out infinite",
+        }}>
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
+            <path d="M12 21s-7.5-4.6-10-9.3C.5 8 2 4 6 4c2.2 0 3.7 1.2 4.6 2.5.3.4.9.4 1.2 0C12.7 5.2 14.2 4 16.4 4c4 0 5.5 4 4 7.7C19.5 16.4 12 21 12 21z" fill="white" opacity=".22" />
+            <path d="M2 12h4l2-5 3 9 2-6 1.5 2H22" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          </svg>
+        </div>
+      </div>
+
+      <h2 style={{ marginTop: 24, fontSize: 21, fontWeight: 800, color: "#2C2F3A" }}>
+        Loading your health dashboard…
+      </h2>
+      <p style={{ marginTop: 6, fontSize: 13.5, color: "#9AA0AD" }}>
+        We&apos;re preparing your insights and latest updates.
+      </p>
+
+      <div style={{ marginTop: 22, width: 280, marginLeft: "auto", marginRight: "auto" }}>
+        <div style={{ height: 8, borderRadius: 8, background: "#F0EEEF", overflow: "hidden" }}>
+          <div style={{
+            height: "100%", borderRadius: 8, width: `${progress}%`,
+            background: "linear-gradient(90deg, #FF6B6B, #FF9F45)",
+            transition: "width .25s ease",
+          }} />
+        </div>
+        <div style={{ marginTop: 8, fontSize: 13, fontWeight: 800, color: "#E85C5C" }}>{progress}%</div>
+      </div>
+    </div>
   );
 }
 
@@ -173,15 +244,33 @@ export default function DashboardPage() {
   const [showAddFamily, setShowAddFamily] = useState(false);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const dismissed = localStorage.getItem("family_card_dismissed");
     if (!dismissed) setShowFamilyCard(true);
   }, []);
 
+  useEffect(() => {
+    if (!showAccountMenu) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setShowAccountMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAccountMenu]);
+
   const dismissFamilyCard = () => {
     localStorage.setItem("family_card_dismissed", "1");
     setShowFamilyCard(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = "/login";
   };
 
   useEffect(() => {
@@ -191,10 +280,11 @@ export default function DashboardPage() {
         const stored = localStorage.getItem("auth_user");
         const authUser: User | null = stored ? JSON.parse(stored) : null;
         if (!authUser) { window.location.href = "/login"; return; }
+        if (!authUser.name) { window.location.href = "/onboarding/name"; return; }
         setUser(authUser);
         const token = localStorage.getItem("auth_token") ?? "";
         const [fetchedLogs, fetchedSummary, fetchedMembers] = await Promise.all([
-          getUserLogs(authUser.id, 7),
+          getUserLogs(authUser.id, 30),
           getUserSummary(authUser.id),
           getFamilyMembers(token).catch((err) => {
             if (err?.message === "Unauthorized") throw err;
@@ -220,34 +310,19 @@ export default function DashboardPage() {
   const todaySteps   = todayLog?.steps ?? 0;
   const todayStepPct = Math.min(Math.round((todaySteps / 10000) * 100), 100);
   const proteinAvg   = summary?.avg_protein_g ?? 0;
-  const carbsAvg     = summary?.avg_carbs_g ?? 0;
+  const caloriesAvg  = summary?.avg_calories ?? 0;
   const proteinPct   = Math.min(Math.round((proteinAvg / 50) * 100), 100);
-  const carbsPct     = Math.min(Math.round((carbsAvg / 200) * 100), 100);
+  const caloriesPct  = Math.min(Math.round((caloriesAvg / 2000) * 100), 100);
   const goalHits     = summary?.step_goal_hits ?? 0;
+  const streak       = useMemo(() => calculateStreak(logs), [logs]);
 
   // ── Loading ─────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="db-page">
         <Sidebar />
-        <div className="db-main">
-          <div style={{ marginBottom: 4 }}><Skel h={32} w={320} r={8} /></div>
-          <div><Skel h={18} w={220} r={6} /></div>
-          <div className="db-kpi-row" style={{ marginTop: 4 }}>
-            {[1,2,3,4].map(i => (
-              <div key={i} className="db-kpi k-blue">
-                <Skel h={30} w={30} r={10} />
-                <div style={{ marginTop: 14 }}><Skel h={38} w={110} r={6} /></div>
-                <div style={{ marginTop: 12 }}><Skel h={7} r={4} /></div>
-                <div style={{ marginTop: 8 }}><Skel h={14} w={140} r={4} /></div>
-              </div>
-            ))}
-          </div>
-          <div className="db-grid">
-            <Skel h={320} r={22} />
-            <Skel h={320} r={22} />
-            <Skel h={320} r={22} />
-          </div>
+        <div className="db-main" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <DashboardLoadingScreen />
         </div>
       </div>
     );
@@ -331,7 +406,45 @@ export default function DashboardPage() {
               <WaIcon size={15} />
               Log via WhatsApp
             </a>
-            <div className="db-avatar">{avatarLetter}</div>
+            <div ref={accountMenuRef} style={{ position: "relative" }}>
+              <div
+                className="db-avatar"
+                onClick={() => setShowAccountMenu(v => !v)}
+                style={{ cursor: "pointer" }}
+              >
+                {avatarLetter}
+              </div>
+              {showAccountMenu && (
+                <div style={{
+                  position: "absolute", top: "calc(100% + 10px)", right: 0,
+                  background: "#fff", borderRadius: 14, border: "1px solid #ECE7E7",
+                  boxShadow: "0 10px 30px rgba(26,20,20,.14)", minWidth: 180,
+                  overflow: "hidden", zIndex: 100,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}>
+                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #F2EFEF" }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, color: "#2C2F3A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {displayName}
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#9AA0AD", marginTop: 2 }}>{user.phone}</div>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", gap: 9,
+                      padding: "11px 16px", background: "none", border: "none",
+                      fontSize: 13.5, fontWeight: 700, color: "#E85C5C", cursor: "pointer",
+                      fontFamily: "inherit", textAlign: "left",
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#FFF3F2"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "none"; }}
+                  >
+                    <SignOut size={16} weight="bold" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -370,29 +483,29 @@ export default function DashboardPage() {
           <div className="db-kpi k-orange">
             <div className="db-kpi-top">
               <div className="db-kpi-ic" style={{ background: "#FFE9D2" }}><FEWheat size={20} /></div>
-              <span className="db-kpi-label">Avg Carbs</span>
+              <span className="db-kpi-label">Avg Calories</span>
             </div>
             <div className="db-kpi-val">
-              {carbsAvg ? <>{carbsAvg.toFixed(0)}<span className="unit">g</span></> : "—"}
+              {caloriesAvg ? <>{caloriesAvg.toFixed(0)}<span className="unit">kcal</span></> : "—"}
             </div>
             <div className="db-bar-track">
-              <div className="db-bar-fill" style={{ width: `${carbsPct}%`, background: "#FF9F45" }} />
+              <div className="db-bar-fill" style={{ width: `${caloriesPct}%`, background: "#FF9F45" }} />
             </div>
-            <div className="db-kpi-sub">{carbsPct}% of 200g goal · 7-day avg</div>
+            <div className="db-kpi-sub">{caloriesPct}% of 2000 kcal goal · 7-day avg</div>
           </div>
 
           <div className="db-kpi k-green">
             <div className="db-kpi-top">
-              <div className="db-kpi-ic" style={{ background: "#D8F5E4" }}><FETarget size={20} /></div>
-              <span className="db-kpi-label">Goal Hits</span>
+              <div className="db-kpi-ic" style={{ background: "#FFE9D2" }}><FEFlame size={20} /></div>
+              <span className="db-kpi-label">Streak</span>
             </div>
             <div className="db-kpi-val">
-              {goalHits}<span className="unit">/ 7</span>
+              {streak}<span className="unit">{streak === 1 ? " day" : " days"}</span>
             </div>
             <div className="db-bar-track">
-              <div className="db-bar-fill" style={{ width: `${(goalHits / 7) * 100}%`, background: "#2FBE76" }} />
+              <div className="db-bar-fill" style={{ width: `${Math.min((streak / 7) * 100, 100)}%`, background: "#FF7A33" }} />
             </div>
-            <div className="db-kpi-sub">Days step goal hit this week</div>
+            <div className="db-kpi-sub">{streak > 0 ? "Keep it going! 🔥" : "Log today to start a streak"}</div>
           </div>
         </div>
 
@@ -564,9 +677,9 @@ export default function DashboardPage() {
 
               <div className="db-sum-row">
                 <div className="db-sum-ic" style={{ background: "#FFF4E8" }}><FEWheat size={22} /></div>
-                <span className="db-sum-label">Carbs</span>
+                <span className="db-sum-label">Calories</span>
                 <div className="db-sum-val">
-                  {todayLog?.carbs_g != null ? `${todayLog.carbs_g.toFixed(0)}g` : "—"}
+                  {todayLog?.calories != null ? `${todayLog.calories} kcal` : "—"}
                 </div>
               </div>
 
@@ -593,7 +706,7 @@ export default function DashboardPage() {
                       {log.raw_message ?? (
                         [
                           log.protein_g != null ? `protein ${log.protein_g.toFixed(0)}g` : null,
-                          log.carbs_g != null ? `carbs ${log.carbs_g.toFixed(0)}g` : null,
+                          log.calories != null ? `${log.calories} kcal` : null,
                         ].filter(Boolean).join(" · ") || "No details"
                       )}
                     </div>
@@ -618,13 +731,13 @@ export default function DashboardPage() {
                 <div className="db-card-title"><Target size={16} weight="bold" /> Activity</div>
               </div>
               <div style={{ display: "flex", justifyContent: "center", marginTop: 4 }}>
-                <TripleDonut stepPct={stepGoalPct} proteinPct={proteinPct} carbsPct={carbsPct} />
+                <TripleDonut stepPct={stepGoalPct} proteinPct={proteinPct} caloriesPct={caloriesPct} />
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: 14 }}>
                 {([
-                  { color: "#FF6B6B", label: "Steps",   val: `${avgSteps ? avgSteps.toLocaleString() : "—"} / 10k` },
-                  { color: "#2FBE76", label: "Protein", val: `${proteinAvg ? proteinAvg.toFixed(0) : "—"}g / 50g` },
-                  { color: "#FF9F45", label: "Carbs",   val: `${carbsAvg ? carbsAvg.toFixed(0) : "—"}g / 200g` },
+                  { color: "#FF6B6B", label: "Steps",    val: `${avgSteps ? avgSteps.toLocaleString() : "—"} / 10k` },
+                  { color: "#2FBE76", label: "Protein",  val: `${proteinAvg ? proteinAvg.toFixed(0) : "—"}g / 50g` },
+                  { color: "#FF9F45", label: "Calories", val: `${caloriesAvg ? caloriesAvg.toFixed(0) : "—"} / 2000 kcal` },
                 ] as const).map((row) => (
                   <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, color: "#5A5F6E" }}>

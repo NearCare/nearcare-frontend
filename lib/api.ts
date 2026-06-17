@@ -13,19 +13,19 @@ const BASE_URL =
 // ─── Types (mirror the Kotlin data classes) ──────────────────────────────────
 
 export type User = {
-  id: string;
+  id: number;
   phone: string;
   name: string | null;
   created_at: string;
 };
 
 export type HealthLog = {
-  id: string;
-  user_id: string;
+  id: number;
+  user_id: number;
   logged_at: string; // "YYYY-MM-DD"
   steps: number | null;
   protein_g: number | null;
-  carbs_g: number | null;
+  calories: number | null;
   raw_message: string | null;
 };
 
@@ -33,7 +33,7 @@ export type Summary = {
   period_days: number;
   avg_steps: number | null;
   avg_protein_g: number | null;
-  avg_carbs_g: number | null;
+  avg_calories: number | null;
   step_goal_hits: number;
   last_logged: string | null;
 };
@@ -108,6 +108,20 @@ export async function verifyOtp(
   return res.json() as Promise<AuthResponse>;
 }
 
+/** Sets the caller's display name. Used by the first-login onboarding step. */
+export async function updateUserName(userId: number, name: string, token: string): Promise<User> {
+  const res = await fetch(`${BASE_URL}/api/users/${userId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? "Failed to update name");
+  }
+  return res.json() as Promise<User>;
+}
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
@@ -115,7 +129,7 @@ export async function verifyOtp(
  * @param days  How many past days to fetch (default 30)
  */
 export async function getUserLogs(
-  userId: string,
+  userId: number,
   days = 30
 ): Promise<HealthLog[]> {
   const data = await apiFetch<{ logs: HealthLog[] }>(
@@ -128,7 +142,7 @@ export async function getUserLogs(
  * Returns the 7-day aggregated summary for a user.
  * Returns null when the backend reports "No data given yet".
  */
-export async function getUserSummary(userId: string): Promise<Summary | null> {
+export async function getUserSummary(userId: number): Promise<Summary | null> {
   // Backend returns { message: "No data given yet" } when logs are empty —
   // we catch that and normalise to null. Any real network/server error
   // is re-thrown so the dashboard can surface it.
@@ -142,7 +156,7 @@ export async function getUserSummary(userId: string): Promise<Summary | null> {
 // ─── Family ──────────────────────────────────────────────────────────────────
 
 export type FamilyMember = {
-  id: string;
+  id: number;
   phone: string;
   name: string | null;
   label: string;
@@ -183,7 +197,7 @@ export async function getFamilyMembers(token: string): Promise<FamilyMember[]> {
   return data.members;
 }
 
-export async function getMemberSummary(memberId: string, token: string): Promise<Summary | null> {
+export async function getMemberSummary(memberId: number, token: string): Promise<Summary | null> {
   const data = await authedFetch<Summary | { message: string }>(
     `/family/members/${memberId}/summary`, token
   );
@@ -191,7 +205,7 @@ export async function getMemberSummary(memberId: string, token: string): Promise
   return data as Summary;
 }
 
-export async function getMemberLogs(memberId: string, token: string, days = 7): Promise<HealthLog[]> {
+export async function getMemberLogs(memberId: number, token: string, days = 7): Promise<HealthLog[]> {
   const data = await authedFetch<{ logs: HealthLog[] }>(
     `/family/members/${memberId}/logs?days=${days}`, token
   );
@@ -223,4 +237,26 @@ export function logsToWeeklySteps(
     });
   }
   return result;
+}
+
+/** Counts consecutive days (ending today or yesterday) the user has a logged entry. */
+export function calculateStreak(logs: HealthLog[]): number {
+  const loggedDates = new Set(logs.map((l) => l.logged_at));
+  const d = new Date();
+  let key = d.toLocaleDateString("en-CA");
+
+  // If today has no log yet, start counting from yesterday so an
+  // in-progress day doesn't reset an otherwise-intact streak.
+  if (!loggedDates.has(key)) {
+    d.setDate(d.getDate() - 1);
+    key = d.toLocaleDateString("en-CA");
+  }
+
+  let streak = 0;
+  while (loggedDates.has(key)) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+    key = d.toLocaleDateString("en-CA");
+  }
+  return streak;
 }

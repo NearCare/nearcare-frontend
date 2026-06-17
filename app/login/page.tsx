@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { sendOtp, verifyOtp } from "@/lib/api";
 
 type Step = "phone" | "otp";
@@ -13,6 +13,21 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function startResendTimer() {
+    setResendTimer(30);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setResendTimer(prev => {
+        if (prev <= 1) { clearInterval(timerRef.current!); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   // ── Step 1: send OTP ────────────────────────────────────────────────────────
   async function handleSendOtp(e: React.FormEvent) {
@@ -28,6 +43,7 @@ export default function LoginPage() {
       await sendOtp(normalized);
       setPhone(normalized);
       setStep("otp");
+      startResendTimer();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send OTP");
     } finally {
@@ -47,7 +63,7 @@ export default function LoginPage() {
       // Save session to localStorage
       localStorage.setItem("auth_token", auth.token);
       localStorage.setItem("auth_user", JSON.stringify(auth.user));
-      router.push("/dashboard");
+      router.push(auth.user.name ? "/dashboard" : "/onboarding/name");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed");
     } finally {
@@ -166,7 +182,7 @@ export default function LoginPage() {
                     width: "100%", padding: "13px 14px 13px 44px",
                     border: "1.5px solid #EDE6E6", borderRadius: 8,
                     fontSize: 14, fontFamily: "inherit",
-                    color: phone.length === 10 ? "#1A2744" : "#B0BFCC",
+                    color: "#1A2744",
                     background: "#FAFAFA", outline: "none", boxSizing: "border-box",
                     transition: "color .2s",
                   }}
@@ -255,7 +271,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                onClick={() => { setStep("phone"); setOtp(""); setError(""); }}
+                onClick={() => { setStep("phone"); setOtp(""); setError(""); setResendTimer(0); if (timerRef.current) clearInterval(timerRef.current); }}
                 style={{
                   width: "100%", padding: 13, border: "1.5px solid #EDE6E6", borderRadius: 8,
                   background: "#fff", fontSize: 14, fontWeight: 500, fontFamily: "inherit",
@@ -269,18 +285,26 @@ export default function LoginPage() {
             {/* Resend */}
             <p style={{ marginTop: 16, textAlign: "center", fontSize: 13, color: "#6B7A9A" }}>
               Didn&apos;t receive it?{" "}
-              <button
-                onClick={async () => {
-                  setError("");
-                  setLoading(true);
-                  try { await sendOtp(phone); }
-                  catch (e) { setError(e instanceof Error ? e.message : "Failed"); }
-                  finally { setLoading(false); }
-                }}
-                style={{ color: "#E85C5C", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontSize: 13, padding: 0 }}
-              >
-                Resend OTP
-              </button>
+              {resendTimer > 0 ? (
+                <span style={{ color: "#B0BFCC", fontWeight: 600 }}>
+                  Resend in {resendTimer}s
+                </span>
+              ) : (
+                <button
+                  onClick={async () => {
+                    setError("");
+                    setOtp("");
+                    setLoading(true);
+                    try { await sendOtp(phone); startResendTimer(); }
+                    catch (e) { setError(e instanceof Error ? e.message : "Failed"); }
+                    finally { setLoading(false); }
+                  }}
+                  disabled={loading}
+                  style={{ color: "#E85C5C", fontWeight: 600, background: "none", border: "none", cursor: loading ? "not-allowed" : "pointer", fontSize: 13, padding: 0 }}
+                >
+                  Resend OTP
+                </button>
+              )}
             </p>
           </>
         )}
