@@ -89,15 +89,11 @@ export default function AddFamilyModal({ onClose, onAdded, onActivated }: Props)
   return (
     <div
       onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.45)", backdropFilter: "blur(3px)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 20,
-      }}
+      className="db-modal-overlay"
     >
       <div
         onClick={e => e.stopPropagation()}
+        className="db-modal-sheet"
         style={{
           background: "#fff", borderRadius: 22,
           width: "100%", maxWidth: 440,

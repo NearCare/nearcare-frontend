@@ -410,7 +410,7 @@ export default function DashboardPage() {
             <p className="db-subtitle">Here&apos;s your health overview for today.</p>
           </div>
           <div className="db-top-actions">
-            <div className="db-pill">
+            <div className="db-pill db-topbar-date">
               <CalendarBlank size={15} weight="bold" />
               {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </div>
@@ -521,7 +521,7 @@ export default function DashboardPage() {
 
         {/* ── Family card ── */}
         {showFamilyCard && familyMembers.length === 0 && (
-          <div style={{
+          <div className="db-family-banner" style={{
             position: "relative",
             background: "linear-gradient(135deg, #EEF0FF 0%, #F5F0FF 60%, #FFF0FA 100%)",
             border: "1.5px solid #DDD8FF",
@@ -533,7 +533,7 @@ export default function DashboardPage() {
             overflow: "hidden",
           }}>
             {/* "Start here!" bubble */}
-            <div style={{
+            <div className="db-family-banner-badge" style={{
               position: "absolute",
               top: 18,
               right: 24,
@@ -552,7 +552,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Illustration */}
-            <div style={{
+            <div className="db-family-banner-emoji" style={{
               fontSize: 68,
               lineHeight: 1,
               flexShrink: 0,
@@ -570,7 +570,7 @@ export default function DashboardPage() {
               <p style={{ fontSize: 14, color: "#5A5F6E", margin: "0 0 20px", lineHeight: 1.6, maxWidth: 440 }}>
                 Add your family members to track everyone&apos;s health, set goals together and keep each other motivated.
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div className="db-family-banner-actions" style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 <button style={{
                   background: "#7C6FF7",
                   color: "#fff",
@@ -779,7 +779,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Wellness widgets ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 18 }}>
+        <div className="db-wellness-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 18 }}>
           <div className="db-widget w-water">
             <div className="db-w-emoji"><FEDroplet size={34} /></div>
             <div>

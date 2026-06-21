@@ -461,7 +461,100 @@ a {
   .db-banner { flex-wrap: wrap; }
   .db-banner .db-pill { margin-left: 0 !important; width: 100%; justify-content: center; }
 }
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .db-kpi-row { grid-template-columns: 1fr; }
-  .db-top-actions { display: none; }
+  .db-topbar-date { display: none; }
+  .db-greeting { font-size: 21px !important; }
+  .db-wellness-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ── Family banner ── */
+@media (max-width: 640px) {
+  .db-family-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 22px 18px !important;
+    gap: 14px !important;
+  }
+  .db-family-banner-badge { top: 14px !important; right: 14px !important; font-size: 10.5px !important; padding: 4px 10px !important; }
+  .db-family-banner-emoji { font-size: 46px !important; }
+  .db-family-banner-actions { width: 100%; flex-wrap: wrap; }
+  .db-family-banner-actions button:first-child { flex: 1 1 auto; justify-content: center; }
+}
+
+/* ── Modal / bottom sheet ── */
+.db-modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.db-modal-sheet {
+  animation: dbModalPop .2s var(--he-ease, ease);
+}
+@keyframes dbModalPop {
+  0%   { opacity: 0; transform: scale(.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes dbSheetSlideUp {
+  0%   { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+@media (max-width: 640px) {
+  .db-modal-overlay { align-items: flex-end; padding: 0; }
+  .db-modal-sheet {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 86vh !important;
+    overflow-y: auto;
+    animation: dbSheetSlideUp .3s cubic-bezier(.32,.72,0,1);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .db-modal-sheet::before {
+    content: "";
+    display: block;
+    width: 38px; height: 4px; border-radius: 4px;
+    background: #E5E1E8;
+    margin: 10px auto 4px;
+  }
+}
+
+/* ── Landing page — responsive ── */
+@media (max-width: 900px) {
+  .lp-nav { padding: 0 20px !important; }
+  .lp-nav a { padding: 7px 14px !important; font-size: 12.5px !important; }
+  .lp-hero { flex-direction: column !important; padding: 32px 20px !important; gap: 32px !important; align-items: stretch !important; }
+  .lp-hero-left { flex: none !important; width: 100% !important; }
+  .lp-hero-title { font-size: 36px !important; }
+  .lp-hero-badges { flex-wrap: wrap !important; gap: 16px !important; }
+  .lp-hero-circle { display: none !important; }
+  .lp-hero-mockup { display: none !important; }
+  .lp-features-section { padding: 36px 20px 40px !important; }
+  .lp-features-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .lp-family-section { padding: 36px 20px !important; }
+  .lp-family-box { flex-direction: column !important; padding: 32px 24px !important; gap: 28px !important; }
+  .lp-family-img { width: 100% !important; max-width: 420px !important; height: auto !important; }
+  .lp-cta-bar { flex-direction: column !important; align-items: flex-start !important; gap: 18px !important; margin: 0 20px 36px !important; }
+  .lp-footer { flex-direction: column !important; gap: 10px !important; text-align: center !important; padding: 18px 20px !important; }
+}
+@media (max-width: 480px) {
+  .lp-features-grid { grid-template-columns: 1fr !important; }
+  .lp-hero-title { font-size: 30px !important; }
+  .lp-hero-cta { flex-wrap: wrap !important; }
+}
+
+/* ── Login page — responsive ── */
+@media (max-width: 760px) {
+  .login-page {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+    padding: 16px !important;
+    gap: 16px !important;
+  }
+  .login-hero { flex: none !important; padding: 22px 22px 18px !important; }
+  .login-hero-image { display: none !important; }
+  .login-form { padding: 32px 24px !important; box-shadow: none !important; border: 1px solid #F0E8E8; }
 }
