@@ -67,6 +67,22 @@ a {
   50%      { opacity: 1;   transform: scale(1.1); }
 }
 
+@keyframes dbWaitPulse {
+  0%, 100% { opacity: .4; transform: scale(.82); }
+  50%      { opacity: 1;  transform: scale(1); }
+}
+
+@keyframes dbSuccessPop {
+  0%   { opacity: 0; transform: scale(.4); }
+  60%  { opacity: 1; transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes dbCheckDraw {
+  0%   { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+
 /* ── NearCare Dashboard — HealthEase design system ── */
 :root {
   --he-page-bg: #FBFAF9;

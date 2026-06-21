@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip as ReTooltip,
   ResponsiveContainer, CartesianGrid,
@@ -273,33 +273,45 @@ export default function DashboardPage() {
     window.location.href = "/login";
   };
 
+  const loadDashboard = useCallback(async (silent = false) => {
+    try {
+      if (!silent) setLoading(true);
+      const stored = localStorage.getItem("auth_user");
+      const authUser: User | null = stored ? JSON.parse(stored) : null;
+      if (!authUser) { window.location.href = "/login"; return; }
+      if (!authUser.name) { window.location.href = "/onboarding/name"; return; }
+      setUser(authUser);
+      const token = localStorage.getItem("auth_token") ?? "";
+      const [fetchedLogs, fetchedSummary, fetchedMembers] = await Promise.all([
+        getUserLogs(authUser.id, 30),
+        getUserSummary(authUser.id),
+        getFamilyMembers(token).catch((err) => {
+          if (err?.message === "Unauthorized") throw err;
+          return [] as FamilyMember[];
+        }),
+      ]);
+      setLogs(fetchedLogs);
+      setSummary(fetchedSummary);
+      setFamilyMembers(fetchedMembers);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load data");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     (async () => {
-      try {
-        setLoading(true);
-        const stored = localStorage.getItem("auth_user");
-        const authUser: User | null = stored ? JSON.parse(stored) : null;
-        if (!authUser) { window.location.href = "/login"; return; }
-        if (!authUser.name) { window.location.href = "/onboarding/name"; return; }
-        setUser(authUser);
-        const token = localStorage.getItem("auth_token") ?? "";
-        const [fetchedLogs, fetchedSummary, fetchedMembers] = await Promise.all([
-          getUserLogs(authUser.id, 30),
-          getUserSummary(authUser.id),
-          getFamilyMembers(token).catch((err) => {
-            if (err?.message === "Unauthorized") throw err;
-            return [] as FamilyMember[];
-          }),
-        ]);
-        setLogs(fetchedLogs);
-        setSummary(fetchedSummary);
-        setFamilyMembers(fetchedMembers);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load data");
-      } finally {
-        setLoading(false);
-      }
+      await loadDashboard();
     })();
+  }, [loadDashboard]);
+
+  const refreshAfterActivation = useCallback(() => {
+    loadDashboard(true);
+  }, [loadDashboard]);
+
+  const handleFamilyMemberAdded = useCallback((member: FamilyMember) => {
+    setFamilyMembers(prev => [member, ...prev.filter(m => m.id !== member.id)]);
   }, []);
 
   const weeklySteps  = useMemo(() => logsToWeeklySteps(logs), [logs]);
@@ -874,7 +886,8 @@ export default function DashboardPage() {
       {showAddFamily && (
         <AddFamilyModal
           onClose={() => setShowAddFamily(false)}
-          onAdded={(member) => setFamilyMembers(prev => [member, ...prev.filter(m => m.id !== member.id)])}
+          onAdded={handleFamilyMemberAdded}
+          onActivated={refreshAfterActivation}
         />
       )}
 
