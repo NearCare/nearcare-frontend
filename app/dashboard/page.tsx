@@ -468,9 +468,7 @@ export default function DashboardPage() {
               <span className="db-kpi-label">Steps Today</span>
             </div>
             <div className="db-kpi-val">
-              {todaySteps >= 1000
-                ? <>{(todaySteps / 1000).toFixed(1)}<span className="unit">k</span></>
-                : (todaySteps || "—")}
+              {todaySteps ? todaySteps.toLocaleString() : "—"}
             </div>
             <div className="db-bar-track">
               <div className="db-bar-fill" style={{ width: `${todayStepPct}%`, background: "#FF6B6B" }} />
