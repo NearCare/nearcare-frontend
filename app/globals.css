@@ -390,17 +390,10 @@ a {
     linear-gradient(135deg, #C4BDFF, #8B7FE8, #FF9F45) border-box;
   border: 1.5px solid transparent;
 }
-.db-widget.w-mood {
-  background:
-    linear-gradient(var(--he-amber-bg), var(--he-amber-bg)) padding-box,
-    linear-gradient(135deg, #FFE4A0, #F3B83E, #FF9F45) border-box;
-  border: 1.5px solid transparent;
-}
 .db-w-emoji { font-size: 30px; flex: none; }
 .db-w-label { font-size: 13px; font-weight: 800; }
 .db-widget.w-water .db-w-label { color: var(--he-blue-deep); }
 .db-widget.w-sleep .db-w-label { color: #6A5BD0; }
-.db-widget.w-mood  .db-w-label { color: #C9941A; }
 .db-w-val { font-size: 20px; font-weight: 800; letter-spacing: -.5px; color: var(--he-ink-1); margin-top: 2px; }
 .db-w-val .unit { font-size: 13px; color: var(--he-ink-3); font-weight: 700; }
 .db-w-tag { font-size: 11.5px; font-weight: 700; color: var(--he-ink-3); margin-top: 2px; }

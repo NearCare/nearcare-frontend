@@ -510,7 +510,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Family card ── */}
-        {showFamilyCard && (
+        {showFamilyCard && familyMembers.length === 0 && (
           <div style={{
             position: "relative",
             background: "linear-gradient(135deg, #EEF0FF 0%, #F5F0FF 60%, #FFF0FA 100%)",
