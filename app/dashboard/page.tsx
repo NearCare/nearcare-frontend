@@ -6,9 +6,8 @@ import {
   ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import {
-  House, TrendUp, CalendarDots, MapPin, FileText,
-  Lightning, Bell, Gear, CalendarBlank, CaretRight,
-  Check, CheckCircle, Warning, X as PhX, List,
+  CalendarBlank,
+  Check, CheckCircle, Warning,
   Users, ChartBar, ClipboardText, Scroll, Sparkle, Target, SignOut,
 } from "@phosphor-icons/react";
 import {
@@ -29,35 +28,7 @@ import {
 import EmptyState from "./components/EmptyState";
 import AddFamilyModal from "./components/AddFamilyModal";
 import FamilyMemberModal from "./components/FamilyMemberModal";
-
-// ── Nav ───────────────────────────────────────────────────────────────────────
-
-const navItems = [
-  { label: "Home",             href: "/dashboard", active: true,  soon: false },
-  { label: "Progress",         href: "#",          active: false, soon: true  },
-  { label: "Appointments",     href: "#",          active: false, soon: true  },
-  { label: "Nearby Providers", href: "#",          active: false, soon: true  },
-  { label: "Health Records",   href: "#",          active: false, soon: true  },
-  { label: "Activity",         href: "#",          active: false, soon: true  },
-  { label: "Reminders",        href: "#",          active: false, soon: true  },
-  { label: "Settings",         href: "#",          active: false, soon: true  },
-];
-
-const NAV_ICONS: Record<string, React.ElementType> = {
-  "Home":             House,
-  "Progress":         TrendUp,
-  "Appointments":     CalendarDots,
-  "Nearby Providers": MapPin,
-  "Health Records":   FileText,
-  "Activity":         Lightning,
-  "Reminders":        Bell,
-  "Settings":         Gear,
-};
-
-function NavIcon({ name }: { name: string }) {
-  const Icon = NAV_ICONS[name] ?? House;
-  return <Icon className="ni-icon" size={19} weight="bold" />;
-}
+import Sidebar from "./components/Sidebar";
 
 // ── Charts ────────────────────────────────────────────────────────────────────
 
@@ -325,6 +296,8 @@ export default function DashboardPage() {
   const caloriesAvg  = summary?.avg_calories ?? 0;
   const proteinPct   = Math.min(Math.round((proteinAvg / 50) * 100), 100);
   const caloriesPct  = Math.min(Math.round((caloriesAvg / 2000) * 100), 100);
+  const todayCalories    = todayLog?.calories ?? 0;
+  const todayCaloriesPct = Math.min(Math.round((todayCalories / 2000) * 100), 100);
   const goalHits     = summary?.step_goal_hits ?? 0;
   const streak       = useMemo(() => calculateStreak(logs), [logs]);
 
@@ -473,13 +446,12 @@ export default function DashboardPage() {
             <div className="db-bar-track">
               <div className="db-bar-fill" style={{ width: `${todayStepPct}%`, background: "#FF6B6B" }} />
             </div>
-            <div className="db-kpi-sub">{todayStepPct}% of 10,000 step goal</div>
           </div>
 
           <div className="db-kpi k-blue">
             <div className="db-kpi-top">
               <div className="db-kpi-ic" style={{ background: "#EAF4FF" }}><FEMeat size={20} /></div>
-              <span className="db-kpi-label">Avg Protein</span>
+              <span className="db-kpi-label">Protein</span>
             </div>
             <div className="db-kpi-val">
               {proteinAvg ? <>{proteinAvg.toFixed(0)}<span className="unit">g</span></> : "—"}
@@ -487,21 +459,19 @@ export default function DashboardPage() {
             <div className="db-bar-track">
               <div className="db-bar-fill" style={{ width: `${proteinPct}%`, background: "#4F9BF5" }} />
             </div>
-            <div className="db-kpi-sub">{proteinPct}% of 50g goal · 7-day avg</div>
           </div>
 
           <div className="db-kpi k-orange">
             <div className="db-kpi-top">
               <div className="db-kpi-ic" style={{ background: "#FFE9D2" }}><FEWheat size={20} /></div>
-              <span className="db-kpi-label">Avg Calories</span>
+              <span className="db-kpi-label">Calories</span>
             </div>
             <div className="db-kpi-val">
-              {caloriesAvg ? <>{caloriesAvg.toFixed(0)}<span className="unit">kcal</span></> : "—"}
+              {todayLog?.calories != null ? <>{todayLog.calories}<span className="unit">kcal</span></> : "—"}
             </div>
             <div className="db-bar-track">
-              <div className="db-bar-fill" style={{ width: `${caloriesPct}%`, background: "#FF9F45" }} />
+              <div className="db-bar-fill" style={{ width: `${todayCaloriesPct}%`, background: "#FF9F45" }} />
             </div>
-            <div className="db-kpi-sub">{caloriesPct}% of 2000 kcal goal · 7-day avg</div>
           </div>
 
           <div className="db-kpi k-green">
@@ -515,7 +485,6 @@ export default function DashboardPage() {
             <div className="db-bar-track">
               <div className="db-bar-fill" style={{ width: `${Math.min((streak / 7) * 100, 100)}%`, background: "#FF7A33" }} />
             </div>
-            <div className="db-kpi-sub">{streak > 0 ? "Keep it going! 🔥" : "Log today to start a streak"}</div>
           </div>
         </div>
 
@@ -646,14 +615,6 @@ export default function DashboardPage() {
                 <StepsChart data={weeklySteps} />
               </div>
             </div>
-
-            <div className="db-card db-card-pad">
-              <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="db-wa-btn">
-                <div className="db-wa-ic"><WaIcon size={16} /></div>
-                <span>Log today&apos;s health via WhatsApp</span>
-                <CaretRight size={16} weight="bold" style={{ marginLeft: "auto", color: "#20A865", flexShrink: 0 }} />
-              </a>
-            </div>
           </div>
 
           {/* Col 2 — Today's log + Recent logs */}
@@ -778,28 +739,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Wellness widgets ── */}
-        <div className="db-wellness-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 18 }}>
-          <div className="db-widget w-water">
-            <div className="db-w-emoji"><FEDroplet size={34} /></div>
-            <div>
-              <div className="db-w-label">Water Intake</div>
-              <div className="db-w-val">—<span className="unit"> L</span></div>
-              <div className="db-w-tag">Coming soon</div>
-            </div>
-            <div className="db-w-art">🌊</div>
-          </div>
-          <div className="db-widget w-sleep">
-            <div className="db-w-emoji"><FEMoon size={34} /></div>
-            <div>
-              <div className="db-w-label">Sleep</div>
-              <div className="db-w-val">—<span className="unit"> hrs</span></div>
-              <div className="db-w-tag">Coming soon</div>
-            </div>
-            <div className="db-w-art">🌙</div>
-          </div>
-        </div>
-
         {/* ── Family members ── */}
         {familyMembers.length > 0 && (
           <div>
@@ -896,65 +835,5 @@ export default function DashboardPage() {
         />
       )}
     </div>
-  );
-}
-
-// ── Sidebar ───────────────────────────────────────────────────────────────────
-
-function Sidebar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  return (
-    <>
-      <div className="db-mobile-topbar">
-        <span style={{ fontSize: 17, fontWeight: 800, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          Near<span style={{ color: "#FF6B6B" }}>Care</span>
-        </span>
-        <button onClick={() => setMobileOpen(!mobileOpen)}
-          style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}>
-          <List size={22} weight="bold" />
-        </button>
-      </div>
-
-      {mobileOpen && (
-        <div onClick={() => setMobileOpen(false)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.3)", zIndex: 150 }} />
-      )}
-
-      <aside className={`db-sidebar${mobileOpen ? " open" : ""}`}>
-        <div className="db-brand">
-          <div className="db-brand-mark">
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
-              <path d="M12 21C12 21 4 14 4 8.5a8 8 0 0116 0C20 14 12 21 12 21z" fill="white" />
-              <circle cx="12" cy="8.5" r="3" fill="rgba(255,255,255,0.45)" />
-            </svg>
-          </div>
-          <span className="db-brand-name">Near<span className="care">Care</span></span>
-        </div>
-
-        <nav className="db-nav">
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.soon ? undefined : item.href}
-              onClick={item.soon
-                ? (e) => e.preventDefault()
-                : () => setMobileOpen(false)}
-              className={`db-nav-item${item.active ? " active" : ""}${item.soon ? " soon" : ""}`}
-            >
-              <NavIcon name={item.label} />
-              <span style={{ flex: 1 }}>{item.label}</span>
-              {item.soon && <span className="db-soon-badge">Soon</span>}
-            </a>
-          ))}
-        </nav>
-
-        <div className="db-motiv">
-          <span className="leaf">🌱</span>
-          <h4>Stay consistent,<br />see the change!</h4>
-          <p>Small steps today,<br />a healthier tomorrow.</p>
-        </div>
-      </aside>
-    </>
   );
 }

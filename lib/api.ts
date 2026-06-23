@@ -10,6 +10,49 @@ const BASE_URL =
   (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL) ||
   "http://localhost:8080";
 
+/**
+ * Set NEXT_PUBLIC_MOCK_API=true in .env.local to bypass the backend
+ * entirely and use canned data — useful for UI-only iteration on the
+ * dashboard without running the Ktor server / Supabase / Twilio.
+ */
+const MOCK_API =
+  typeof process !== "undefined" && process.env.NEXT_PUBLIC_MOCK_API === "true";
+
+const MOCK_USER: User = {
+  id: 1,
+  phone: "+919876543210",
+  name: "Samarth",
+  created_at: new Date().toISOString(),
+};
+
+const MOCK_LOGS: HealthLog[] = Array.from({ length: 14 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() - i);
+  return {
+    id: i + 1,
+    user_id: 1,
+    logged_at: d.toLocaleDateString("en-CA"),
+    steps: 4000 + Math.round(Math.random() * 6000),
+    protein_g: 40 + Math.round(Math.random() * 40),
+    calories: 1600 + Math.round(Math.random() * 900),
+    raw_message: i === 0 ? "8200 steps, chicken breast for lunch" : null,
+  };
+}).filter((_, i) => i !== 4);
+
+const MOCK_SUMMARY: Summary = {
+  period_days: 7,
+  avg_steps: 6800,
+  avg_protein_g: 58,
+  avg_calories: 2050,
+  step_goal_hits: 4,
+  last_logged: MOCK_LOGS[0]?.logged_at ?? null,
+};
+
+const MOCK_MEMBERS: FamilyMember[] = [
+  { id: 2, phone: "+919876500001", name: "Dad", label: "Dad", type: "family", status: "active", created_at: new Date().toISOString() },
+  { id: 3, phone: "+919876500002", name: null, label: "Mom", type: "family", status: "active", created_at: new Date().toISOString() },
+];
+
 // ─── Types (mirror the Kotlin data classes) ──────────────────────────────────
 
 export type User = {
@@ -77,6 +120,7 @@ export type AuthResponse = {
  * Phone must include country code, e.g. "+919876543210"
  */
 export async function sendOtp(phone: string): Promise<void> {
+  if (MOCK_API) return;
   const res = await fetch(`${BASE_URL}/auth/send-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -96,6 +140,7 @@ export async function verifyOtp(
   phone: string,
   code: string
 ): Promise<AuthResponse> {
+  if (MOCK_API) return { token: "mock-token", user: MOCK_USER };
   const res = await fetch(`${BASE_URL}/auth/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -110,6 +155,7 @@ export async function verifyOtp(
 
 /** Sets the caller's display name. Used by the first-login onboarding step. */
 export async function updateUserName(userId: number, name: string, token: string): Promise<User> {
+  if (MOCK_API) return { ...MOCK_USER, name };
   const res = await fetch(`${BASE_URL}/api/users/${userId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -132,6 +178,7 @@ export async function getUserLogs(
   userId: number,
   days = 30
 ): Promise<HealthLog[]> {
+  if (MOCK_API) return MOCK_LOGS;
   const data = await apiFetch<{ logs: HealthLog[] }>(
     `/api/users/${userId}/logs?days=${days}`
   );
@@ -143,6 +190,7 @@ export async function getUserLogs(
  * Returns null when the backend reports "No data given yet".
  */
 export async function getUserSummary(userId: number): Promise<Summary | null> {
+  if (MOCK_API) return MOCK_SUMMARY;
   // Backend returns { message: "No data given yet" } when logs are empty —
   // we catch that and normalise to null. Any real network/server error
   // is re-thrown so the dashboard can surface it.
@@ -193,11 +241,13 @@ export async function inviteFamilyMember(
 }
 
 export async function getFamilyMembers(token: string): Promise<FamilyMember[]> {
+  if (MOCK_API) return MOCK_MEMBERS;
   const data = await authedFetch<{ members: FamilyMember[] }>("/family/members", token);
   return data.members;
 }
 
 export async function getMemberSummary(memberId: number, token: string): Promise<Summary | null> {
+  if (MOCK_API) return MOCK_SUMMARY;
   const data = await authedFetch<Summary | { message: string }>(
     `/family/members/${memberId}/summary`, token
   );
@@ -206,6 +256,7 @@ export async function getMemberSummary(memberId: number, token: string): Promise
 }
 
 export async function getMemberLogs(memberId: number, token: string, days = 7): Promise<HealthLog[]> {
+  if (MOCK_API) return MOCK_LOGS;
   const data = await authedFetch<{ logs: HealthLog[] }>(
     `/family/members/${memberId}/logs?days=${days}`, token
   );

@@ -476,6 +476,33 @@ a {
   .db-wellness-grid { grid-template-columns: 1fr !important; }
 }
 
+/* ── Family Overview page ── */
+.fo-section-bar {
+  width: 5px; height: 19px; border-radius: 4px; flex: none;
+  background: linear-gradient(180deg, var(--he-coral-2), var(--he-coral-deep));
+}
+.fo-member-card {
+  position: relative; overflow: hidden;
+  transition: transform .22s var(--he-ease), box-shadow .22s var(--he-ease);
+}
+.fo-member-card:hover { transform: translateY(-4px); box-shadow: var(--he-shadow-pop); }
+.fo-metric-tile { transition: transform .2s var(--he-ease), box-shadow .2s var(--he-ease); }
+.fo-metric-tile:hover { transform: translateY(-3px); box-shadow: var(--he-shadow-pop); }
+.fo-score-spotlight { position: relative; overflow: hidden; }
+.fo-add-card { transition: transform .2s var(--he-ease), box-shadow .2s var(--he-ease); }
+.fo-add-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(232,92,92,.22); }
+.fo-add-pulse-ring { position: relative; display: flex; align-items: center; justify-content: center; }
+.fo-add-pulse-ring::before {
+  content: ""; position: absolute; width: 56px; height: 56px; border-radius: 50%;
+  background: var(--he-coral); opacity: .35;
+  animation: fo-pulse 2.2s ease-out infinite;
+}
+@keyframes fo-pulse {
+  0% { transform: scale(1); opacity: .35; }
+  70% { transform: scale(1.7); opacity: 0; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
 /* ── Family banner ── */
 @media (max-width: 640px) {
   .db-family-banner {
