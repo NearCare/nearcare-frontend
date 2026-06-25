@@ -117,8 +117,55 @@ export default function FamilyOverviewPage() {
         </div>
 
         {memberRows.length === 0 ? (
-          <div className="db-card db-card-pad" style={{ textAlign: "center", color: "#9AA0AD", fontSize: 13.5 }}>
-            No active family members yet. Add one below to see them here.
+          <div style={{ display: "flex", alignItems: "stretch", gap: 16, flexWrap: "wrap" }}>
+            <div className="db-card db-card-pad" style={{
+              flex: "1 1 420px",
+              minWidth: 300,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              color: "#9AA0AD",
+              fontSize: 13.5,
+            }}>
+              No active family members yet. Add one here to see them in your family overview.
+            </div>
+            <button
+              onClick={() => setShowAddFamily(true)}
+              className="fo-add-card"
+              style={{
+                flex: "0 0 300px", minWidth: 300, minHeight: 230,
+                border: "2px dashed var(--he-coral)", borderRadius: 24,
+                background: "linear-gradient(165deg, var(--he-coral-bg) 0%, #fff 75%)",
+                boxShadow: "0 8px 22px rgba(232,92,92,.14)",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                gap: 10, padding: "22px 18px", cursor: "pointer", position: "relative", overflow: "hidden",
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >
+              <Sparkle size={13} weight="fill" color="var(--he-coral)" style={{ position: "absolute", top: 16, left: 22, opacity: 0.5 }} />
+              <Sparkle size={9} weight="fill" color="var(--he-coral)" style={{ position: "absolute", bottom: 22, right: 26, opacity: 0.4 }} />
+              <div className="fo-add-pulse-ring">
+                <div style={{
+                  width: 48, height: 48, borderRadius: "50%", background: "var(--he-coral)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 8px 20px rgba(232,92,92,.4)", position: "relative", zIndex: 1,
+                }}>
+                  <UserPlus size={22} weight="bold" color="#fff" />
+                </div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#1A2744" }}>Add a family member</p>
+                <p style={{ margin: "3px 0 0", fontSize: 11, color: "#9AA0AD", fontWeight: 500 }}>Track their health too</p>
+              </div>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 5, marginTop: 2,
+                background: "var(--he-coral)", color: "#fff", fontSize: 11, fontWeight: 700,
+                padding: "5px 14px", borderRadius: 99,
+              }}>
+                Invite now <CaretRight size={11} weight="bold" />
+              </span>
+            </button>
           </div>
         ) : (
           <div style={{ display: "flex", alignItems: "stretch", gap: 16, flexWrap: "wrap" }}>
