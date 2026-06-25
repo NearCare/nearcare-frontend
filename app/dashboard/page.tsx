@@ -6,6 +6,7 @@ import {
   Star, CalendarBlank, CalendarCheck, Trophy, SignOut, UserPlus,
 } from "@phosphor-icons/react";
 import { Flame, Dumbbell, Footprints } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip as ReTooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 import { FEShoe, FEMeat, FEWheat, FEDroplet, FEMoon, FEFlame, FEChat } from "./components/FluentEmoji";
 import {
   getUserLogs,
@@ -55,8 +56,115 @@ function Sparkline({ data, color }: { data: number[]; color: string }) {
   );
 }
 
+type MetricDetail = {
+  label: string;
+  data: { label: string; value: number }[];
+  color: string;
+  unit: string;
+  goal: number;
+  decimals?: number;
+};
+
+function MetricDetailFloater({ detail, onClose }: { detail: MetricDetail; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  const todayIdx = detail.data.length - 1;
+  const maxVal = Math.max(...detail.data.map(d => d.value), detail.goal * 0.5);
+  const fmt = (v: number) => detail.decimals ? v.toFixed(detail.decimals) : Math.round(v).toLocaleString();
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, background: "rgba(26,20,20,.45)", zIndex: 300,
+        display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+        backdropFilter: "blur(2px)",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: 24, padding: "26px 26px 22px",
+          width: "100%", maxWidth: 460, boxShadow: "0 24px 60px rgba(26,20,20,.18)",
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <div>
+            <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#1A2744" }}>{detail.label}</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#9AA0AD", fontWeight: 500 }}>Last 7 days · Goal: {detail.goal.toLocaleString()} {detail.unit}/day</p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              width: 32, height: 32, borderRadius: "50%", border: "none",
+              background: "#F5F3F8", display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", flexShrink: 0,
+            }}
+          >
+            <X size={15} weight="bold" color="#9AA0AD" />
+          </button>
+        </div>
+
+        <ResponsiveContainer width="100%" height={180}>
+          <BarChart data={detail.data} barSize={32} margin={{ top: 10, right: 4, left: 0, bottom: 0 }}>
+            <XAxis
+              dataKey="label"
+              axisLine={false} tickLine={false}
+              tick={{ fontSize: 11, fontWeight: 700, fill: "#9AA0AD", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            />
+            <YAxis hide domain={[0, maxVal * 1.25]} />
+            <ReTooltip
+              cursor={{ fill: "rgba(0,0,0,.04)", radius: 8 }}
+              contentStyle={{ background: "#fff", border: "1px solid #F2F1F3", borderRadius: 10, fontSize: 12, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              labelStyle={{ color: "#9AA0AD", fontSize: 11, fontWeight: 700 }}
+              itemStyle={{ fontWeight: 700 }}
+              formatter={(v) => [`${fmt(Number(v))} ${detail.unit}`, detail.label]}
+            />
+            <ReferenceLine
+              y={detail.goal}
+              stroke="#E0DCF0" strokeDasharray="5 4" strokeWidth={1.5}
+              label={{ value: "Goal", position: "right", fontSize: 10, fill: "#BFC4CE", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            />
+            <Bar dataKey="value" radius={[7, 7, 3, 3]}>
+              {detail.data.map((entry, i) => (
+                <Cell
+                  key={i}
+                  fill={i === todayIdx
+                    ? detail.color
+                    : entry.value >= detail.goal
+                      ? detail.color + "CC"
+                      : detail.color + "44"
+                  }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+
+        <div style={{ display: "flex", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
+          {[
+            { dot: detail.color, label: "Today" },
+            { dot: detail.color + "CC", label: "Goal met" },
+            { dot: detail.color + "44", label: "Below goal" },
+          ].map(({ dot, label }) => (
+            <span key={label} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600, color: "#9AA0AD" }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: dot, display: "inline-block" }} />
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MetricTile({
-  icon, label, color, deepColor, chipBg, stripBg, value, unit, goalText, pct, deltaDown, deltaText, sparkline,
+  icon, label, color, deepColor, chipBg, stripBg, value, unit, goalText, pct, deltaDown, deltaText, sparkline, onClick,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -71,9 +179,10 @@ function MetricTile({
   deltaDown: boolean;
   deltaText: string;
   sparkline: number[];
+  onClick?: () => void;
 }) {
   return (
-    <div className="db-card fo-metric-tile" style={{ display: "flex", flexDirection: "column", padding: "13px 14px" }}>
+    <div className="db-card fo-metric-tile" onClick={onClick} style={{ display: "flex", flexDirection: "column", padding: "13px 14px", cursor: onClick ? "pointer" : "default" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
           <div style={{ width: 26, height: 26, borderRadius: 8, background: chipBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -228,6 +337,7 @@ export default function DashboardPage() {
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
   const [showAddFamily, setShowAddFamily] = useState(false);
   const [showScoreInfo, setShowScoreInfo] = useState(false);
+  const [metricDetail, setMetricDetail] = useState<MetricDetail | null>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const scoreInfoRef = useRef<HTMLDivElement>(null);
 
@@ -310,9 +420,11 @@ export default function DashboardPage() {
   }, [loadDashboard]);
 
   const weeklySteps = useMemo(() => logsToWeeklyMetric(logs, "steps"), [logs]);
+  const weeklyProtein = useMemo(() => logsToWeeklyMetric(logs, "protein_g"), [logs]);
+  const weeklyCalories = useMemo(() => logsToWeeklyMetric(logs, "calories"), [logs]);
   const streak = useMemo(() => calculateStreak(logs), [logs]);
-  const proteinSeries = useMemo(() => logsToWeeklyMetric(logs, "protein_g").map((d) => d.value), [logs]);
-  const caloriesSeries = useMemo(() => logsToWeeklyMetric(logs, "calories").map((d) => d.value), [logs]);
+  const proteinSeries = useMemo(() => weeklyProtein.map((d) => d.value), [weeklyProtein]);
+  const caloriesSeries = useMemo(() => weeklyCalories.map((d) => d.value), [weeklyCalories]);
   const stepsSeries = useMemo(() => weeklySteps.map((d) => d.value), [weeklySteps]);
   const hasData = !!summary?.last_logged;
   const proteinAvg = summary?.avg_protein_g ?? 0;
@@ -947,6 +1059,7 @@ export default function DashboardPage() {
                 deltaDown={proteinDeltaPct !== null && proteinDeltaPct < 0}
                 deltaText={proteinDeltaPct !== null ? `${Math.abs(proteinDeltaPct)}% vs last week` : "No data yet"}
                 sparkline={proteinSeries}
+                onClick={() => setMetricDetail({ label: "Protein", data: weeklyProtein, color: "#FF6B6B", unit: "g", goal: 50, decimals: 0 })}
               />
               <MetricTile
                 icon={<FEWheat size={16} />} label="Calories"
@@ -955,6 +1068,7 @@ export default function DashboardPage() {
                 deltaDown={caloriesDeltaAbs !== null && caloriesDeltaAbs < 0}
                 deltaText={caloriesDeltaAbs !== null ? `${Math.abs(caloriesDeltaAbs)} kcal vs last week` : "No data yet"}
                 sparkline={caloriesSeries}
+                onClick={() => setMetricDetail({ label: "Calories", data: weeklyCalories, color: "#FF9F45", unit: "kcal", goal: 2000 })}
               />
               <MetricTile
                 icon={<FEShoe size={16} />} label="Steps today"
@@ -963,6 +1077,7 @@ export default function DashboardPage() {
                 deltaDown={stepsVsYesterday < 0}
                 deltaText={`${Math.abs(stepsVsYesterday).toLocaleString()} vs yesterday`}
                 sparkline={stepsSeries}
+                onClick={() => setMetricDetail({ label: "Steps", data: weeklySteps, color: "#2FBE76", unit: "steps", goal: 10000 })}
               />
               <MetricTile
                 icon={<FEMoon size={16} />} label="Sleep"
@@ -1041,6 +1156,10 @@ export default function DashboardPage() {
           onClose={() => setShowAddFamily(false)}
           onAdded={(member) => setMemberRows((rows) => [...rows, { member, summary: null }])}
         />
+      )}
+
+      {metricDetail && (
+        <MetricDetailFloater detail={metricDetail} onClose={() => setMetricDetail(null)} />
       )}
     </div>
   );
