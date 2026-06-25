@@ -227,7 +227,9 @@ export default function DashboardPage() {
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
   const [showAddFamily, setShowAddFamily] = useState(false);
+  const [showScoreInfo, setShowScoreInfo] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const scoreInfoRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const dismissed = localStorage.getItem("family_card_dismissed");
@@ -244,6 +246,17 @@ export default function DashboardPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showAccountMenu]);
+
+  useEffect(() => {
+    if (!showScoreInfo) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (scoreInfoRef.current && !scoreInfoRef.current.contains(e.target as Node)) {
+        setShowScoreInfo(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showScoreInfo]);
 
   const dismissFamilyCard = () => {
     localStorage.setItem("family_card_dismissed", "1");
@@ -374,7 +387,7 @@ export default function DashboardPage() {
   if (weeklyCalorieTotal > 0) {
     weeklyInsights.push({ icon: <FEFlame size={15} />, text: `You logged ~${weeklyCalorieTotal.toLocaleString()} kcal this week.` });
   }
-  weeklyInsights.push({ icon: <FEDroplet size={15} />, text: "Water & sleep tracking is coming soon." });
+  weeklyInsights.push({ icon: <FEMoon size={15} />, text: "Sleep tracking is coming soon." });
   if (weeklyInsights.length === 1) {
     weeklyInsights.unshift({ icon: <Warning size={15} weight="bold" color="var(--he-orange-deep)" />, text: "No health data logged yet this week." });
   }
@@ -565,18 +578,19 @@ export default function DashboardPage() {
 
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 480px", minWidth: 320 }}>
-        {memberRows.length > 0 && (
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <h2 style={{ fontSize: 15, fontWeight: 800, color: "#2C2F3A", margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Family
               </h2>
-              <Link href="/dashboard/family-overview" style={{
-                display: "flex", alignItems: "center", gap: 3, fontSize: 12.5, fontWeight: 700,
-                color: "#7C6FF7", textDecoration: "none",
-              }}>
-                Manage <CaretRight size={11} weight="bold" />
-              </Link>
+              {memberRows.length > 0 && (
+                <Link href="/dashboard/family-overview" style={{
+                  display: "flex", alignItems: "center", gap: 3, fontSize: 12.5, fontWeight: 700,
+                  color: "#7C6FF7", textDecoration: "none",
+                }}>
+                  Manage <CaretRight size={11} weight="bold" />
+                </Link>
+              )}
             </div>
             <div style={{ display: "flex", alignItems: "stretch", gap: 16, overflowX: "auto", padding: "10px 4px 12px" }}>
               {memberRows.map(({ member, summary: memberSummary }) => {
@@ -698,7 +712,6 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
-        )}
         </div>
 
         <div style={{ flex: "0 0 360px", minWidth: 300 }}>
@@ -778,7 +791,45 @@ export default function DashboardPage() {
           <div className="db-card" style={{ flex: "1 1 0", minWidth: 380, padding: "24px 26px 22px", position: "relative", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 22 }}>
               <span style={{ fontSize: 17, fontWeight: 800, color: "#1A2744", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Your Weekly Score</span>
-              <Info size={15} weight="bold" color="#BFC4CE" />
+              <div ref={scoreInfoRef} style={{ position: "relative", display: "flex" }}>
+                <button
+                  onClick={() => setShowScoreInfo(v => !v)}
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", lineHeight: 1 }}
+                >
+                  <Info size={15} weight="bold" color={showScoreInfo ? "#7C6FF7" : "#BFC4CE"} />
+                </button>
+                {showScoreInfo && (
+                  <div style={{
+                    position: "absolute", top: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)",
+                    background: "#1A2744", color: "#fff", borderRadius: 14, padding: "14px 16px",
+                    width: 260, zIndex: 50, boxShadow: "0 8px 28px rgba(26,20,20,.22)",
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  }}>
+                    <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 12, height: 6, overflow: "hidden" }}>
+                      <div style={{ width: 10, height: 10, background: "#1A2744", transform: "rotate(45deg)", margin: "3px auto 0" }} />
+                    </div>
+                    <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 800, color: "#fff" }}>How your score is calculated</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                      {[
+                        { label: "Steps", detail: "avg vs 10,000/day goal", weight: "40 pts" },
+                        { label: "Protein", detail: "avg vs 50 g/day goal", weight: "30 pts" },
+                        { label: "Calories", detail: "avg vs 2,000 kcal/day goal", weight: "30 pts" },
+                      ].map(({ label, detail, weight }) => (
+                        <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                          <div>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{label}</span>
+                            <span style={{ fontSize: 11, color: "#9AA0AD", marginLeft: 5 }}>{detail}</span>
+                          </div>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: "#7C6FF7", flexShrink: 0 }}>{weight}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p style={{ margin: "10px 0 0", fontSize: 10.5, color: "#9AA0AD", lineHeight: 1.5 }}>
+                      Each metric is scored as a % of goal, then weighted. Averages are taken over the last 7 days.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
@@ -822,12 +873,6 @@ export default function DashboardPage() {
                     <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Calories</span>
                     <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: `${(caloriesPts / 30) * 100}%`, background: "#FFB877" }} /></div>
                     <span style={{ width: 44, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#9AA0AD" }}>{caloriesPts}/30</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <FEDroplet size={20} />
-                    <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Water</span>
-                    <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: "30%", background: "#D8E4F0" }} /></div>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#9AA0AD", background: "#F5F3F8", padding: "2px 8px", borderRadius: 99, whiteSpace: "nowrap" }}>Soon</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FEMoon size={20} />
@@ -926,14 +971,6 @@ export default function DashboardPage() {
                 deltaDown={false}
                 deltaText="20 mins vs last week"
                 sparkline={[5.8, 6.1, 6.4, 5.9, 6.7, 7.0, 6.5]}
-              />
-              <MetricTile
-                icon={<FEDroplet size={16} />} label="Water"
-                color="var(--he-blue)" deepColor="var(--he-blue-deep)" chipBg="var(--he-blue-bg-2)" stripBg="var(--he-blue-bg)"
-                value="1.8" unit="L" goalText="of 2.5 L goal · Coming soon" pct={72}
-                deltaDown={true}
-                deltaText="0.2 L vs last week"
-                sparkline={[2.1, 1.9, 2.0, 1.7, 1.6, 1.9, 1.8]}
               />
               <div className="db-card" style={{
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
