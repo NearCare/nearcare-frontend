@@ -20,6 +20,7 @@ import {
   type FamilyMember,
   type User,
 } from "@/lib/api";
+import StreakPill from "../components/StreakPill";
 
 const WA_LINK = "https://wa.me/";
 
@@ -482,15 +483,7 @@ export default function MedicationsPage() {
               <CalendarBlank size={15} weight="bold" />
               {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </div>
-            <div className="db-pill" style={{
-              background: streak > 0 ? "#FFF3E8" : "#F5F3F8",
-              border: `1.5px solid ${streak > 0 ? "#FFD0A0" : "#EDE6E6"}`,
-              color: streak > 0 ? "#CC6A00" : "#9AA0AD",
-              fontWeight: 800,
-              cursor: "default",
-            }}>
-              🔥 {streak} {streak === 1 ? "day" : "days"}
-            </div>
+            <StreakPill streak={streak} />
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="db-pill cta">
               Log via WhatsApp
             </a>

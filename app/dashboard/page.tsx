@@ -26,6 +26,7 @@ import EmptyState from "./components/EmptyState";
 import Sidebar from "./components/Sidebar";
 import FamilyMemberModal from "./components/FamilyMemberModal";
 import AddFamilyModal from "./components/AddFamilyModal";
+import StreakPill from "./components/StreakPill";
 
 /** Averages raw logs falling within [minDaysAgo, maxDaysAgo] of today — used to compare this week vs last week. */
 function rangeAverages(logs: HealthLog[], minDaysAgo: number, maxDaysAgo: number) {
@@ -731,14 +732,7 @@ export default function DashboardPage() {
               <CalendarBlank size={15} weight="bold" />
               {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </div>
-            <div className="db-pill" style={{
-              background: streak > 0 ? "#FFF3E8" : "#F5F3F8",
-              border: `1.5px solid ${streak > 0 ? "#FFD0A0" : "#EDE6E6"}`,
-              color: streak > 0 ? "#CC6A00" : "#9AA0AD",
-              fontWeight: 700, gap: 5,
-            }}>
-              🔥 {streak} {streak === 1 ? "day" : "days"}
-            </div>
+            <StreakPill streak={streak} />
             <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="db-pill cta">
               <WaIcon size={15} />
               Log via WhatsApp
