@@ -723,12 +723,32 @@ a {
   display: flex;
   align-items: center;
   gap: 20px;
+  align-self: stretch;
 }
 .seo-nav-links a,
 .seo-nav-cta {
   color: var(--muted);
   font-size: 13.5px;
   font-weight: 700;
+}
+.seo-nav-links a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: #6B7898;
+}
+.seo-nav-links a.active {
+  color: var(--ink);
+}
+.seo-nav-links a.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--primary);
 }
 .seo-nav-cta {
   color: #fff;

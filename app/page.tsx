@@ -358,15 +358,6 @@ export default function LandingPage() {
           </span>
         </div>
         <div className="lp-nav-actions" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <button
-            onClick={() => document.getElementById("use-cases")?.scrollIntoView({ behavior: "smooth" })}
-            style={{
-              border: "none", background: "transparent", color: "#6B7A9A",
-              fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            Use cases
-          </button>
           <Link href="/login" style={{
             padding: "8px 20px", border: "1.5px solid #EDE6E6", borderRadius: 8,
             fontSize: 13.5, fontWeight: 600, color: "#1A2744", background: "#fff",

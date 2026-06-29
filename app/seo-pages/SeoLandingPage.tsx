@@ -50,6 +50,12 @@ const visualCopy = {
   },
 };
 
+const navItems = [
+  { href: "/medicine-reminders-for-parents", label: "For parents" },
+  { href: "/whatsapp-medicine-reminders", label: "WhatsApp reminders" },
+  { href: "/elderly-parent-care-app", label: "Elder care" },
+];
+
 function Brand() {
   return (
     <Link href="/" className="seo-brand" aria-label="FamCare home">
@@ -129,6 +135,8 @@ export default function SeoLandingPage({
   content: SeoPageContent;
   canonical: string;
 }) {
+  const activePath = new URL(canonical).pathname;
+
   return (
     <main className="seo-page">
       <JsonLd content={content} canonical={canonical} />
@@ -136,9 +144,16 @@ export default function SeoLandingPage({
       <nav className="seo-nav">
         <Brand />
         <div className="seo-nav-links">
-          <Link href="/medicine-reminders-for-parents">For parents</Link>
-          <Link href="/whatsapp-medicine-reminders">WhatsApp reminders</Link>
-          <Link href="/elderly-parent-care-app">Elder care</Link>
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={activePath === item.href ? "active" : undefined}
+              aria-current={activePath === item.href ? "page" : undefined}
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
         <Link href="/login" className="seo-nav-cta">Get started</Link>
       </nav>
