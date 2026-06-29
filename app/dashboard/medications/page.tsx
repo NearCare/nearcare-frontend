@@ -116,12 +116,14 @@ function endDateFor(form: MedicineForm) {
   return null;
 }
 
-function formatTimeLabel(value: string) {
-  return new Date(value).toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+function formatTimeLabel(timeOfDay: string) {
+  const [hourPart = "0", minutePart = "0"] = timeOfDay.split(":");
+  const hour = Number(hourPart);
+  const minute = Number(minutePart);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return timeOfDay;
+  const period = hour >= 12 ? "pm" : "am";
+  const hour12 = hour % 12 || 12;
+  return `${hour12.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")} ${period}`;
 }
 
 function statusLabel(status: TodayDose["status"]) {
@@ -535,7 +537,7 @@ export default function MedicationsPage() {
     medicineId: dose.medicine.id,
     scheduleId: dose.schedule.id,
     scheduledFor: dose.scheduled_for,
-    timeLabel: formatTimeLabel(dose.scheduled_for),
+    timeLabel: formatTimeLabel(dose.schedule.time_of_day),
     name: `${dose.medicine.name}${dose.medicine.strength ? ` ${dose.medicine.strength}` : ""}`,
     dose: dose.medicine.dose,
     timing: formatTiming(dose.medicine.timing),
