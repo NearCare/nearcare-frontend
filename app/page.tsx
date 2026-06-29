@@ -69,6 +69,24 @@ const structuredData = {
   ],
 };
 
+const useCases = [
+  {
+    title: "Medicine reminders for parents",
+    desc: "Set parent medicine schedules and track taken or missed doses.",
+    href: "/medicine-reminders-for-parents",
+  },
+  {
+    title: "WhatsApp medicine reminders",
+    desc: "Use a familiar WhatsApp flow for reminders and confirmations.",
+    href: "/whatsapp-medicine-reminders",
+  },
+  {
+    title: "Elderly parent care app",
+    desc: "Coordinate family care, medicine routines, and weekly updates.",
+    href: "/elderly-parent-care-app",
+  },
+];
+
 const HeartIcon = () => (
   <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
     <path d="M10 17.2C10 17.2 2.5 12.5 2.5 7.5A5 5 0 0 1 10 3.84 5 5 0 0 1 17.5 7.5C17.5 12.5 10 17.2 10 17.2Z" fill="white" />
@@ -339,7 +357,16 @@ export default function LandingPage() {
             Fam<em style={{ color: "#E85C5C", fontStyle: "normal" }}>Care</em>
           </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="lp-nav-actions" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            onClick={() => document.getElementById("use-cases")?.scrollIntoView({ behavior: "smooth" })}
+            style={{
+              border: "none", background: "transparent", color: "#6B7A9A",
+              fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Use cases
+          </button>
           <Link href="/login" style={{
             padding: "8px 20px", border: "1.5px solid #EDE6E6", borderRadius: 8,
             fontSize: 13.5, fontWeight: 600, color: "#1A2744", background: "#fff",
@@ -544,6 +571,42 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Use cases */}
+      <section id="use-cases" className="lp-use-cases-section" style={{ padding: "0 60px 58px", background: "#fff" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 20, marginBottom: 20 }}>
+            <div>
+              <p style={{ margin: 0, color: "#E85C5C", fontSize: 12, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase" }}>
+                Use cases
+              </p>
+              <h2 style={{ margin: "8px 0 0", fontSize: 30, fontWeight: 700, color: "#1A2744", letterSpacing: "-.4px" }}>
+                Built for real family care moments
+              </h2>
+            </div>
+            <p style={{ margin: 0, maxWidth: 380, color: "#6B7A9A", fontSize: 13.5, lineHeight: 1.7 }}>
+              Explore how FamCare helps with parent medicine reminders, WhatsApp confirmations, and elderly care coordination.
+            </p>
+          </div>
+          <div className="lp-use-cases-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
+            {useCases.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{
+                  display: "block", border: "1px solid #F0E8E8", borderRadius: 12,
+                  padding: 20, background: "#FFFCFB", color: "#1A2744",
+                  boxShadow: "0 2px 12px rgba(26,20,20,.05)",
+                }}
+              >
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>{item.title}</h3>
+                <p style={{ margin: "8px 0 14px", color: "#6B7A9A", fontSize: 13, lineHeight: 1.65 }}>{item.desc}</p>
+                <span style={{ color: "#E85C5C", fontSize: 13, fontWeight: 800 }}>Read more →</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section style={{ padding: "8px 60px 56px", background: "#fff" }}>
         <div style={{ maxWidth: 920, margin: "0 auto" }}>
@@ -610,7 +673,12 @@ export default function LandingPage() {
         background: "#fff",
       }}>
         <span style={{ fontSize: 13, color: "#6B7A9A" }}>© 2026 FamCare. All rights reserved.</span>
-        <div style={{ display: "flex", gap: 24 }}>
+        <div className="lp-footer-links" style={{ display: "flex", gap: 18, flexWrap: "wrap", justifyContent: "center" }}>
+          {useCases.map((item) => (
+            <Link key={item.href} href={item.href} style={{ fontSize: 13, color: "#6B7A9A", textDecoration: "none" }}>
+              {item.title}
+            </Link>
+          ))}
           <Link href="/privacy" style={{ fontSize: 13, color: "#6B7A9A", textDecoration: "none" }}>Privacy Policy</Link>
           <a href="https://wa.me/14155238886" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#6B7A9A", textDecoration: "none" }}>Contact</a>
         </div>

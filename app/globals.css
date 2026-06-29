@@ -665,6 +665,8 @@ a {
   .lp-hero-mockup { display: none !important; }
   .lp-features-section { padding: 36px 20px 40px !important; }
   .lp-features-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .lp-use-cases-section { padding: 0 20px 40px !important; }
+  .lp-use-cases-grid { grid-template-columns: 1fr !important; }
   .lp-family-section { padding: 36px 20px !important; }
   .lp-family-box { flex-direction: column !important; padding: 32px 24px !important; gap: 28px !important; }
   .lp-family-img { width: 100% !important; max-width: 420px !important; height: auto !important; }
