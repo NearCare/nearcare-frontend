@@ -12,7 +12,7 @@ import {
   type Summary,
   type FamilyMember,
 } from "@/lib/api";
-import { scoreTier, computeScore, ScoreRing } from "../components/Score";
+import { scoreTier, computeScore, ScoreRing, ScoreText } from "../components/Score";
 
 const RANK_PALETTE = [
   { bg: "#FFF8E7", accent: "#F5A623", text: "#A06400", caption: "Top of the family!" },
@@ -347,9 +347,8 @@ export default function FamilyOverviewPage() {
                         </p>
                         <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: palette.text }}>{palette.caption}</p>
                       </div>
-                      <span style={{ fontSize: 15, fontWeight: 800, color: "#1A2744", flexShrink: 0 }}>
-                        {row.score ?? "—"}
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "#9AA0AD" }}>/100</span>
+                      <span style={{ flexShrink: 0 }}>
+                        <ScoreText score={row.score} tier={scoreTier(row.score)} size="sm" />
                       </span>
                     </div>
                     <div className="db-bar-track" style={{ margin: 0, height: 5 }}>
