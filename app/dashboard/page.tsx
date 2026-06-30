@@ -1043,8 +1043,8 @@ export default function DashboardPage() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                       {[
                         { label: "Steps", detail: "avg vs 10,000/day goal", weight: "40 pts" },
-                        { label: "Protein", detail: "avg vs 50 g/day goal", weight: "30 pts" },
-                        { label: "Calories", detail: "avg vs 2,000 kcal/day goal", weight: "30 pts" },
+                        { label: "Protein", detail: "est. avg vs 50 g/day goal", weight: "30 pts" },
+                        { label: "Calories", detail: "est. avg vs 2,000 kcal/day goal", weight: "30 pts" },
                       ].map(({ label, detail, weight }) => (
                         <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                           <div>
@@ -1056,7 +1056,7 @@ export default function DashboardPage() {
                       ))}
                     </div>
                     <p style={{ margin: "10px 0 0", fontSize: 10.5, color: "#9AA0AD", lineHeight: 1.5 }}>
-                      Each metric is scored as a % of goal, then weighted. Averages are taken over the last 7 days.
+                      Each metric is scored as a % of goal, then weighted. Food nutrition values are estimates from your logged meals.
                     </p>
                   </div>
                 )}
@@ -1089,25 +1089,25 @@ export default function DashboardPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FEShoe size={20} />
-                    <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Steps</span>
+                    <span style={{ width: 78, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Steps</span>
                     <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: `${(stepsPts / 40) * 100}%`, background: "var(--he-green)" }} /></div>
                     <span style={{ width: 44, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#9AA0AD" }}>{stepsPts}/40</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FEMeat size={20} />
-                    <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Protein</span>
+                    <span style={{ width: 78, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Protein est.</span>
                     <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: `${(proteinPts / 30) * 100}%`, background: "var(--he-coral)" }} /></div>
                     <span style={{ width: 44, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#9AA0AD" }}>{proteinPts}/30</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FEWheat size={20} />
-                    <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Calories</span>
+                    <span style={{ width: 78, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Calories est.</span>
                     <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: `${(caloriesPts / 30) * 100}%`, background: "#FFB877" }} /></div>
                     <span style={{ width: 44, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#9AA0AD" }}>{caloriesPts}/30</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FEMoon size={20} />
-                    <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Sleep</span>
+                    <span style={{ width: 78, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Sleep</span>
                     <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: `${Math.min(Math.round((sleepAvg / 8) * 100), 100)}%`, background: "#8B7FE8" }} /></div>
                     <span style={{ width: 44, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#9AA0AD" }}>{sleepAvg ? `${sleepAvg.toFixed(1)}h` : "—"}</span>
                   </div>
@@ -1171,7 +1171,7 @@ export default function DashboardPage() {
 
           <div style={{ flex: "1 1 0", minWidth: 300, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, alignContent: "start" }}>
               <MetricTile
-                icon={<FEMeat size={16} />} label="Protein today"
+                icon={<FEMeat size={16} />} label="Protein today (est.)"
                 color="var(--he-coral)" deepColor="var(--he-coral-deep)" chipBg="var(--he-coral-bg-2)" stripBg="var(--he-coral-bg)"
                 value={todayProtein ? todayProtein.toFixed(0) : "—"} unit="g"
                 goalText={goalProtein ? `of ${goalProtein}g goal` : undefined}
@@ -1183,7 +1183,7 @@ export default function DashboardPage() {
                 onSetGoal={() => setShowGoals(true)}
               />
               <MetricTile
-                icon={<FEWheat size={16} />} label="Calories today"
+                icon={<FEWheat size={16} />} label="Calories today (est.)"
                 color="var(--he-orange)" deepColor="var(--he-orange-deep)" chipBg="var(--he-orange-bg-2)" stripBg="var(--he-orange-bg)"
                 value={todayCalories ? todayCalories.toLocaleString() : "—"} unit="kcal"
                 goalText={goalCalories ? `of ${goalCalories.toLocaleString()} kcal goal` : undefined}

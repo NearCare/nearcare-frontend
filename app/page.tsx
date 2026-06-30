@@ -174,7 +174,7 @@ const DashboardMockup = () => (
           {[
             { icon: <ForkKnife size={18} weight="bold" color="#E85C5C" />, label: "Meals Logged", color: "#E85C5C", val: "3", sub: "Today", pct: 100, colorClass: "r" },
             { icon: <FEShoe size={20} />, label: "Steps Today", color: "#4A8FE2", val: "6,842", sub: "Today", pct: 68, colorClass: "b", blue: true },
-            { icon: <Fire size={18} weight="bold" color="#F5A623" />, label: "Calories Burned", color: "#F5A623", val: "1,650", sub: "Today", pct: 83, colorClass: "o" },
+            { icon: <Fire size={18} weight="bold" color="#F5A623" />, label: "Calories Est.", color: "#F5A623", val: "1,650", sub: "Today", pct: 83, colorClass: "o" },
           ].map((stat) => (
             <div key={stat.label} style={{
               background: stat.blue ? "linear-gradient(145deg,#EBF3FF,#D4E8FF)" : "#fff",
@@ -271,7 +271,7 @@ const DashboardMockup = () => (
               {[
                 { color: "#4A8FE2", label: "Steps", val: "6,842 / 10,000" },
                 { color: "#F5A623", label: "Active Time", val: "45 / 60 mins" },
-                { color: "#E85C5C", label: "Calories", val: "1,650 / 2,000" },
+                { color: "#E85C5C", label: "Calories est.", val: "1,650 / 2,000" },
               ].map((row) => (
                 <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 8.5 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#6B7A9A" }}>
@@ -616,7 +616,7 @@ export default function LandingPage() {
               },
               {
                 question: "Does FamCare replace a doctor or prescription?",
-                answer: "No. FamCare is for reminders, tracking, and family coordination. Always follow the doctor's prescription and medical advice.",
+                answer: "No. FamCare is for reminders, tracking, and family coordination. Nutrition values are estimates, and you should always follow the doctor's prescription and medical advice.",
               },
             ].map((item) => (
               <div key={item.question} style={{ border: "1px solid #F0E8E8", borderRadius: 12, padding: "18px 20px", background: "#FFFCFB" }}>

@@ -39,7 +39,7 @@ export default function PrivacyPolicy() {
 
 • Phone number — used to identify your account and send you OTPs and health summaries via WhatsApp.
 • Name — optionally provided via your WhatsApp profile.
-• Health data — steps, protein, calories, and other metrics you share via WhatsApp messages or voice notes.
+• Health data — steps, estimated protein, estimated calories, and other metrics you share via WhatsApp messages or voice notes.
 • Message content — the raw text or transcription of your WhatsApp messages, stored alongside your health log.
 • Session tokens — used to keep you logged in on the dashboard.
 
@@ -49,7 +49,7 @@ We do not collect payment information, location data, or any data beyond what yo
             title: "3. How We Use Your Data",
             body: `Your data is used solely to:
 
-• Parse and store your daily health logs.
+• Parse and store your daily health logs, including approximate nutrition estimates from meal messages.
 • Display your health history and summaries on the FamCare dashboard.
 • Allow family members you invite to view your health data (only with your explicit consent via the invite flow).
 • Send you WhatsApp replies confirming your logged data.

@@ -231,12 +231,12 @@ export default function FamilyOverviewPage() {
                     <div>
                       <div style={{ display: "flex", justifyContent: "center" }}><Flame size={20} color="#FF9F45" /></div>
                       <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{todayCalories != null ? todayCalories.toLocaleString() : "—"}</p>
-                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Cal today</p>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Cal est.</p>
                     </div>
                     <div>
                       <div style={{ display: "flex", justifyContent: "center" }}><Dumbbell size={20} color="#4F9BF5" /></div>
                       <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{todayProtein != null ? `${todayProtein.toFixed(0)}g` : "—"}</p>
-                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Protein today</p>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Protein est.</p>
                     </div>
                     <div>
                       <div style={{ display: "flex", justifyContent: "center" }}><Footprints size={20} color="#20A865" /></div>

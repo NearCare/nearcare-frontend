@@ -147,8 +147,8 @@ export default function FamilyMemberModal({ member, onClose }: Props) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
             {[
               { icon: <FEShoe size={24} />, label: "Steps today", val: loading ? null : todaySteps ? `${todaySteps.toLocaleString()}` : "—", unit: "", bar: todayStepPct, color: "#7C6FF7", bg: "#F0EEFF" },
-              { icon: <FEMeat size={24} />, label: "Protein today", val: loading ? null : todayProtein ? `${todayProtein.toFixed(0)}` : "—", unit: "g", bar: todayProteinPct, color: "#2FBE76", bg: "#EAFBF0" },
-              { icon: <FEWheat size={24} />, label: "Calories today", val: loading ? null : todayCalories ? `${todayCalories.toLocaleString()}` : "—", unit: "", bar: todayCaloriesPct, color: "#FF9F45", bg: "#FFF4E8" },
+              { icon: <FEMeat size={24} />, label: "Protein today (est.)", val: loading ? null : todayProtein ? `${todayProtein.toFixed(0)}` : "—", unit: "g", bar: todayProteinPct, color: "#2FBE76", bg: "#EAFBF0" },
+              { icon: <FEWheat size={24} />, label: "Calories today (est.)", val: loading ? null : todayCalories ? `${todayCalories.toLocaleString()}` : "—", unit: "", bar: todayCaloriesPct, color: "#FF9F45", bg: "#FFF4E8" },
             ].map(card => (
               <div key={card.label} style={{ background: card.bg, borderRadius: 14, padding: "14px 14px 12px" }}>
                 <div style={{ marginBottom: 6 }}>{card.icon}</div>
@@ -170,8 +170,8 @@ export default function FamilyMemberModal({ member, onClose }: Props) {
           {/* Weekly charts */}
           {[
             { title: "Steps this week", data: weeklySteps, unitLabel: "steps", activeColor: "#7C6FF7", idleColor: "#E8E4FF" },
-            { title: "Protein this week", data: weeklyProtein, unitLabel: "g", activeColor: "#2FBE76", idleColor: "#DBF6E6" },
-            { title: "Calories this week", data: weeklyCalories, unitLabel: "kcal", activeColor: "#FF9F45", idleColor: "#FFE7CC" },
+            { title: "Protein this week (est.)", data: weeklyProtein, unitLabel: "g", activeColor: "#2FBE76", idleColor: "#DBF6E6" },
+            { title: "Calories this week (est.)", data: weeklyCalories, unitLabel: "kcal", activeColor: "#FF9F45", idleColor: "#FFE7CC" },
           ].map(chart => (
             <div key={chart.title} style={{ background: "#FAFAFA", borderRadius: 16, padding: "18px 18px 14px" }}>
               <div style={{ fontSize: 13.5, fontWeight: 800, color: "#2C2F3A", marginBottom: 12, fontFamily: "'Plus Jakarta Sans', sans-serif", display: "flex", alignItems: "center", gap: 7 }}>
@@ -201,8 +201,8 @@ export default function FamilyMemberModal({ member, onClose }: Props) {
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {[
                   { ic: <FEShoe size={20} />, label: "Steps", val: todayLog.steps != null ? todayLog.steps.toLocaleString() : "—" },
-                  { ic: <FEMeat size={20} />, label: "Protein", val: todayLog.protein_g != null ? `${todayLog.protein_g.toFixed(0)}g` : "—" },
-                  { ic: <FEWheat size={20} />, label: "Calories", val: todayLog.calories != null ? `${todayLog.calories} kcal` : "—" },
+                  { ic: <FEMeat size={20} />, label: "Protein est.", val: todayLog.protein_g != null ? `${todayLog.protein_g.toFixed(0)}g` : "—" },
+                  { ic: <FEWheat size={20} />, label: "Calories est.", val: todayLog.calories != null ? `${todayLog.calories} kcal` : "—" },
                 ].map(row => (
                   <div key={row.label} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5 }}>
                     <span style={{ display: "flex", alignItems: "center" }}>{row.ic}</span>
