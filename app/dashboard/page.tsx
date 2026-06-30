@@ -1180,55 +1180,105 @@ export default function DashboardPage() {
 
             <div style={{ height: 1, background: "var(--he-hairline)", margin: "22px 0" }} />
 
-            <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 260px" }}>
-                <p style={{ margin: "0 0 14px", fontSize: 13.5, fontWeight: 800, color: "#1A2744" }}>7-Day Activity</p>
-                <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.35fr) minmax(280px, .9fr)", gap: 18 }}>
+              <div style={{ border: "1px solid var(--he-card-border)", borderRadius: 20, padding: "20px 22px", background: "#fff", boxShadow: "0 10px 26px rgba(31,28,35,.04)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 22 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+                    <span style={{ width: 48, height: 48, borderRadius: 16, background: "var(--he-orange-bg)", display: "grid", placeItems: "center", flex: "none" }}>
+                      <CalendarBlank size={24} weight="bold" color="var(--he-orange-deep)" />
+                    </span>
+                    <span>
+                      <span style={{ display: "block", color: "#1A2744", fontSize: 20, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: "-.3px" }}>7-Day Activity</span>
+                      <span style={{ display: "block", color: "#7C84A8", fontSize: 13.5, fontWeight: 700, marginTop: 2 }}>Your logging this week</span>
+                    </span>
+                  </div>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7, borderRadius: 999, background: "var(--he-green-bg)", color: "var(--he-green-deep)", padding: "8px 13px", fontSize: 13.5, fontWeight: 900, whiteSpace: "nowrap" }}>
+                    <CheckCircle size={16} weight="fill" />
+                    {daysLoggedThisWeek}/7 days
+                  </span>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 10, alignItems: "center" }}>
                   {weeklySteps.map((d, i) => {
                     const status = d.value === 0 ? "missed" : goalSteps && d.value >= goalSteps ? "met" : d.value > 0 ? "partial" : "missed";
-                    const color = status === "met" ? "var(--he-green)" : status === "partial" ? "var(--he-blue)" : "var(--he-coral)";
+                    const colors = status === "met"
+                      ? { bg: "var(--he-green-bg)", border: "#CFEFDC", text: "var(--he-green-deep)" }
+                      : status === "partial"
+                      ? { bg: "var(--he-blue-bg)", border: "#D4E8FF", text: "var(--he-blue-deep)" }
+                      : { bg: "var(--he-coral-bg)", border: "#FFD2D2", text: "var(--he-coral-deep)" };
                     return (
-                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
-                        <span style={{ fontSize: 10.5, fontWeight: 700, color: "#9AA0AD" }}>{d.label}</span>
-                        <div style={{ width: 28, height: 28, borderRadius: "50%", background: color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          {status === "met" && <CheckCircle size={14} weight="fill" color="#fff" />}
-                          {status === "partial" && <Minus size={13} weight="bold" color="#fff" />}
-                          {status === "missed" && <X size={12} weight="bold" color="#fff" />}
-                        </div>
+                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, minWidth: 0 }}>
+                        <span style={{ color: "#5A6170", fontSize: 12, fontWeight: 800 }}>{d.label}</span>
+                        <span style={{ width: 48, height: 48, borderRadius: "50%", background: colors.bg, border: `1.5px solid ${colors.border}`, display: "grid", placeItems: "center", color: colors.text, boxShadow: "0 8px 18px rgba(31,28,35,.05)" }}>
+                          {status === "met" && <CheckCircle size={22} weight="bold" />}
+                          {status === "partial" && <Minus size={22} weight="bold" />}
+                          {status === "missed" && <X size={20} weight="bold" />}
+                        </span>
                       </div>
                     );
                   })}
                 </div>
-                <div style={{ display: "flex", gap: 14, marginTop: 16, fontSize: 11, color: "#9AA0AD", fontWeight: 600, flexWrap: "wrap" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}><CheckCircle size={13} weight="fill" color="var(--he-green)" /> Goal met</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}><Minus size={13} weight="bold" color="var(--he-blue)" /> Partial</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}><X size={13} weight="bold" color="var(--he-coral)" /> Missed</span>
+
+                <div style={{ borderTop: "1px dashed #ECE8EE", marginTop: 22, paddingTop: 16, display: "flex", justifyContent: "center", gap: 22, flexWrap: "wrap", color: "#7C84A8", fontSize: 12.5, fontWeight: 800 }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}><CheckCircle size={17} weight="fill" color="var(--he-green)" /> Goal met</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}><Minus size={17} weight="bold" color="var(--he-blue)" /> Partial</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}><X size={16} weight="bold" color="var(--he-coral)" /> Missed</span>
                 </div>
               </div>
 
-              <div style={{ flex: "1 1 280px", minWidth: 240 }}>
-                <p style={{ margin: "0 0 14px", fontSize: 13.5, fontWeight: 800, color: "#1A2744" }}>Weekly Insights</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                  {weeklyInsights.map((ins, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9, fontSize: 12.5 }}>
-                      <span style={{ flexShrink: 0, marginTop: 1 }}>{ins.icon}</span>
-                      <span style={{ color: "#2C2F3A" }}>{ins.text}</span>
-                    </div>
-                  ))}
+              <div style={{ border: "1px solid var(--he-card-border)", borderRadius: 20, padding: "20px 20px", background: "#fff", boxShadow: "0 10px 26px rgba(31,28,35,.04)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 18 }}>
+                  <span style={{ width: 48, height: 48, borderRadius: 16, background: "var(--he-orange-bg)", display: "grid", placeItems: "center", flex: "none" }}>
+                    <Sparkle size={24} weight="bold" color="var(--he-orange-deep)" />
+                  </span>
+                  <span>
+                    <span style={{ display: "block", color: "#1A2744", fontSize: 20, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: "-.3px" }}>Weekly Insights</span>
+                    <span style={{ display: "block", color: "#7C84A8", fontSize: 13.5, fontWeight: 700, marginTop: 2 }}>AI insights from your data</span>
+                  </span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {weeklyInsights.slice(0, 3).map((ins, i) => {
+                    const accents = [
+                      { bg: "var(--he-coral-bg)", line: "#FFC9C9" },
+                      { bg: "var(--he-orange-bg)", line: "#FFD8AC" },
+                      { bg: "var(--he-violet-bg)", line: "#DED8FF" },
+                    ][i] ?? { bg: "var(--he-blue-bg)", line: "#D4E8FF" };
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 13, border: "1px solid #F0EEF5", borderRadius: 16, background: "#fff", padding: "12px 13px", boxShadow: "0 8px 18px rgba(31,28,35,.035)" }}>
+                        <span style={{ width: 40, height: 40, borderRadius: "50%", background: accents.bg, display: "grid", placeItems: "center", flex: "none" }}>{ins.icon}</span>
+                        <span style={{ width: 4, alignSelf: "stretch", borderRadius: 999, background: accents.line }} />
+                        <span style={{ color: "#1A2744", fontSize: 13.5, fontWeight: 750, lineHeight: 1.45 }}>{ins.text}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
             <div style={{
-              marginTop: 22, background: "var(--he-green-bg)", borderRadius: 14, padding: "12px 18px",
-              display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap",
-              fontSize: 12.5, fontWeight: 700, color: "var(--he-green-deep)",
+              marginTop: 18,
+              border: "1px solid #CFEFDC",
+              background: "linear-gradient(135deg, #F7FFFA, #FFFFFF)",
+              borderRadius: 20,
+              padding: "18px 22px",
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: 18,
+              alignItems: "center",
             }}>
-              <span>🏆 Best day: {bestDay.label}</span>
-              <span style={{ opacity: 0.4 }}>•</span>
-              <span>👟 Most steps: {bestDay.value.toLocaleString()}</span>
-              <span style={{ opacity: 0.4 }}>•</span>
-              <span>🔥 Logging streak: {streak} {streak === 1 ? "day" : "days"}</span>
+              {[
+                { icon: "🏆", label: "Best day", value: bestDay.label, color: "var(--he-green-deep)" },
+                { icon: "👟", label: "Most steps", value: `${bestDay.value.toLocaleString()} steps`, color: "var(--he-blue-deep)" },
+                { icon: "🔥", label: "Logging streak", value: `${streak} ${streak === 1 ? "day" : "days"}`, color: "var(--he-orange-deep)" },
+              ].map((item, index) => (
+                <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0, borderLeft: index === 0 ? "none" : "1px solid #DDEFE5", paddingLeft: index === 0 ? 0 : 18 }}>
+                  <span style={{ width: 52, height: 52, borderRadius: "50%", background: index === 0 ? "var(--he-green-bg)" : index === 1 ? "var(--he-blue-bg)" : "var(--he-orange-bg)", display: "grid", placeItems: "center", fontSize: 24, flex: "none" }}>{item.icon}</span>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: "block", color: "#7C84A8", fontSize: 13, fontWeight: 800 }}>{item.label}</span>
+                    <span style={{ display: "block", color: item.color, fontSize: 22, fontWeight: 900, lineHeight: 1.1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.value}</span>
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
