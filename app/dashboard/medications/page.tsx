@@ -44,6 +44,12 @@ type ScheduledTime = {
   time: string;
 };
 
+type WeekDay = {
+  value: number;
+  label: string;
+  short: string;
+};
+
 type SelectOption = {
   value: string;
   label: string;
@@ -57,7 +63,7 @@ type MedicineForm = {
   dayPart: DayPart;
   times: ScheduledTime[];
   startDate: string;
-  duration: "Ongoing" | "7 days" | "14 days" | "Custom";
+  daysOfWeek: number[];
   reminders: boolean;
 };
 
@@ -86,7 +92,7 @@ const defaultForm = (personId: string): MedicineForm => ({
   dayPart: "Morning",
   times: [],
   startDate: todayISO(),
-  duration: "Ongoing",
+  daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
   reminders: true,
 });
 
@@ -96,6 +102,16 @@ const DEFAULT_TIMES_BY_DAY_PART: Record<DayPart, string> = {
   Evening: "18:00",
   Night: "21:00",
 };
+
+const WEEK_DAYS: WeekDay[] = [
+  { value: 0, label: "Sunday", short: "Sun" },
+  { value: 1, label: "Monday", short: "Mon" },
+  { value: 2, label: "Tuesday", short: "Tue" },
+  { value: 3, label: "Wednesday", short: "Wed" },
+  { value: 4, label: "Thursday", short: "Thu" },
+  { value: 5, label: "Friday", short: "Fri" },
+  { value: 6, label: "Saturday", short: "Sat" },
+];
 
 function displayName(person: PersonOption | undefined) {
   if (!person) return "family";
@@ -112,18 +128,6 @@ function formatTiming(timing: string | null) {
   if (timing === "with_food") return "With food";
   if (timing === "empty_stomach") return "Empty stomach";
   return "Anytime";
-}
-
-function addDays(date: string, days: number) {
-  const value = new Date(`${date}T00:00:00`);
-  value.setDate(value.getDate() + days);
-  return value.toLocaleDateString("en-CA");
-}
-
-function endDateFor(form: MedicineForm) {
-  if (form.duration === "7 days") return addDays(form.startDate, 6);
-  if (form.duration === "14 days") return addDays(form.startDate, 13);
-  return null;
 }
 
 function formatTimeLabel(timeOfDay: string) {
@@ -323,7 +327,7 @@ function AddMedicineDrawer({
 }) {
   const [form, setForm] = useState<MedicineForm>(() => defaultForm(initialPersonId));
   const selectedPerson = people.find((person) => person.id === form.personId);
-  const canSave = form.personId && form.name.trim() && form.times.length > 0;
+  const canSave = form.personId && form.name.trim() && form.times.length > 0 && form.daysOfWeek.length > 0;
   const personOptions = people.map((person) => ({
     value: person.id,
     label: `${person.name} ${person.label === "You" ? "(You)" : ""}`,
@@ -348,6 +352,14 @@ function AddMedicineDrawer({
 
   const removeScheduleTime = (index: number) => {
     update("times", form.times.filter((_, itemIndex) => itemIndex !== index));
+  };
+
+  const toggleWeekDay = (day: number) => {
+    const selected = form.daysOfWeek.includes(day);
+    const nextDays = selected
+      ? form.daysOfWeek.filter((item) => item !== day)
+      : [...form.daysOfWeek, day].sort((a, b) => a - b);
+    update("daysOfWeek", nextDays);
   };
 
   return (
@@ -439,7 +451,7 @@ function AddMedicineDrawer({
           </div>
 
           <div>
-            <FieldLabel>Schedule</FieldLabel>
+            <FieldLabel>Reminder times</FieldLabel>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 10 }}>
               {(["Morning", "Afternoon", "Evening", "Night"] as DayPart[]).map((option) => {
                 const active = form.dayPart === option;
@@ -499,20 +511,44 @@ function AddMedicineDrawer({
             </div>
           </div>
 
-          <div className="med-form-grid">
-            <div>
-              <FieldLabel>Start date</FieldLabel>
-              <TextField type="date" value={form.startDate} onChange={(value) => update("startDate", value)} />
+          <div>
+            <FieldLabel>Repeat on</FieldLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 7 }}>
+              {WEEK_DAYS.map((day) => {
+                const active = form.daysOfWeek.includes(day.value);
+                return (
+                  <button
+                    key={day.value}
+                    type="button"
+                    onClick={() => toggleWeekDay(day.value)}
+                    aria-pressed={active}
+                    title={day.label}
+                    style={{
+                      height: 34,
+                      border: `1.5px solid ${active ? "var(--he-coral)" : "var(--he-card-border)"}`,
+                      borderRadius: 11,
+                      background: active ? "var(--he-coral-bg)" : "#fff",
+                      color: active ? "var(--he-coral-deep)" : "var(--he-ink-2)",
+                      fontFamily: "inherit",
+                      fontSize: 11.5,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {day.short}
+                  </button>
+                );
+              })}
             </div>
-            <div>
-              <FieldLabel>Duration</FieldLabel>
-              <FancySelect
-                value={form.duration}
-                options={["Ongoing", "7 days", "14 days", "Custom"].map((option) => ({ value: option, label: option }))}
-                onChange={(nextValue) => update("duration", nextValue as MedicineForm["duration"])}
-	              />
-	            </div>
-	          </div>
+            <p style={{ margin: "7px 0 0", fontSize: 11.5, color: "var(--he-ink-3)", fontWeight: 600 }}>
+              Medicines stay ongoing until you remove them.
+            </p>
+          </div>
+
+          <div>
+            <FieldLabel>Start date</FieldLabel>
+            <TextField type="date" value={form.startDate} onChange={(value) => update("startDate", value)} />
+          </div>
 
           <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, border: "1px solid var(--he-hairline)", borderRadius: 14, padding: "13px 14px", cursor: "pointer" }}>
             <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -705,11 +741,11 @@ export default function MedicationsPage() {
         dose: "As prescribed",
         timing: "anytime",
         start_date: form.startDate,
-        end_date: endDateFor(form),
+        end_date: null,
         notes: null,
         schedules: form.times.map((schedule) => ({
           time_of_day: schedule.time,
-          days_of_week: null,
+          days_of_week: form.daysOfWeek,
           reminder_enabled: form.reminders,
           reminder_offset_minutes: 15,
         })),
