@@ -1056,7 +1056,7 @@ export default function DashboardPage() {
         </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 3fr) minmax(420px, 2fr)", gap: 16, alignItems: "stretch" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 11fr) minmax(420px, 9fr)", gap: 16, alignItems: "stretch" }}>
           <div className="db-card" style={{ minWidth: 0, padding: "24px 26px 22px", position: "relative", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 22 }}>
               <span style={{ fontSize: 17, fontWeight: 800, color: "#1A2744", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Your Weekly Score</span>
@@ -1212,10 +1212,10 @@ export default function DashboardPage() {
               border: "1px solid #CFEFDC",
               background: "linear-gradient(135deg, #F7FFFA, #FFFFFF)",
               borderRadius: 20,
-              padding: "18px 22px",
+              padding: "16px 18px",
               display: "grid",
               gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: 18,
+              gap: 14,
               alignItems: "center",
             }}>
               {[
@@ -1223,11 +1223,11 @@ export default function DashboardPage() {
                 { icon: "👟", label: "Most steps", value: `${bestDay.value.toLocaleString()} steps`, color: "var(--he-blue-deep)" },
                 { icon: "🔥", label: "Logging streak", value: `${streak} ${streak === 1 ? "day" : "days"}`, color: "var(--he-orange-deep)" },
               ].map((item, index) => (
-                <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 13, minWidth: 0, borderLeft: index === 0 ? "none" : "1px solid #DDEFE5", paddingLeft: index === 0 ? 0 : 18 }}>
-                  <span style={{ width: 52, height: 52, borderRadius: "50%", background: index === 0 ? "var(--he-green-bg)" : index === 1 ? "var(--he-blue-bg)" : "var(--he-orange-bg)", display: "grid", placeItems: "center", fontSize: 24, flex: "none" }}>{item.icon}</span>
+                <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, borderLeft: index === 0 ? "none" : "1px solid #DDEFE5", paddingLeft: index === 0 ? 0 : 14 }}>
+                  <span style={{ width: 44, height: 44, borderRadius: "50%", background: index === 0 ? "var(--he-green-bg)" : index === 1 ? "var(--he-blue-bg)" : "var(--he-orange-bg)", display: "grid", placeItems: "center", fontSize: 20, flex: "none" }}>{item.icon}</span>
                   <span style={{ minWidth: 0 }}>
-                    <span style={{ display: "block", color: "#7C84A8", fontSize: 13, fontWeight: 800 }}>{item.label}</span>
-                    <span style={{ display: "block", color: item.color, fontSize: 22, fontWeight: 900, lineHeight: 1.1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.value}</span>
+                    <span style={{ display: "block", color: "#7C84A8", fontSize: 11.5, fontWeight: 800, whiteSpace: "nowrap" }}>{item.label}</span>
+                    <span style={{ display: "block", color: item.color, fontSize: 18, fontWeight: 900, lineHeight: 1.12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.value}</span>
                   </span>
                 </div>
               ))}
