@@ -7,12 +7,13 @@ import {
 } from "@phosphor-icons/react";
 import { Flame, Dumbbell, Footprints } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip as ReTooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
-import { FEShoe, FEMeat, FEWheat, FEDroplet, FEMoon, FEFlame, FEChat } from "./components/FluentEmoji";
+import { FEShoe, FEProtein, FEWheat, FEDroplet, FEMoon, FEFlame, FEChat } from "./components/FluentEmoji";
 import {
   getUserLogs,
   getUserSummary,
   getFamilyMembers,
   getMemberSummary,
+  getMemberLogs,
   updateUserGoals,
   logsToWeeklyMetric,
   calculateStreak,
@@ -21,7 +22,7 @@ import {
   type Summary,
   type FamilyMember,
 } from "@/lib/api";
-import { scoreTier, computeScore, scoreFromAverages, ScoreRing } from "./components/Score";
+import { scoreTier, computeScore, scoreFromAverages, ScoreRing, ScoreText } from "./components/Score";
 import EmptyState from "./components/EmptyState";
 import Sidebar from "./components/Sidebar";
 import FamilyMemberModal from "./components/FamilyMemberModal";
@@ -299,7 +300,7 @@ function GoalsModal({
 }
 
 function MetricTile({
-  icon, label, color, deepColor, chipBg, stripBg, value, unit, goalText, pct, deltaDown, deltaText, sparkline, onClick, onSetGoal,
+  icon, label, color, deepColor, chipBg, stripBg, value, unit, goalText, pct, deltaDown, deltaText, sparkline, onClick, onSetGoal, estimated = false,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -316,6 +317,7 @@ function MetricTile({
   sparkline: number[];
   onClick?: () => void;
   onSetGoal?: () => void;
+  estimated?: boolean;
 }) {
   return (
     <div className="db-card fo-metric-tile" onClick={onClick} style={{ display: "flex", flexDirection: "column", padding: "13px 14px", cursor: onClick ? "pointer" : "default" }}>
@@ -325,6 +327,7 @@ function MetricTile({
             {icon}
           </div>
           <span style={{ fontSize: 12.5, fontWeight: 800, color: deepColor }}>{label}</span>
+          {estimated && <EstimateInfo color={deepColor} />}
         </div>
         <CaretRight size={13} color="#BFC4CE" />
       </div>
@@ -372,6 +375,63 @@ function MetricTile({
         <Sparkline data={sparkline} color={color} />
       </div>
     </div>
+  );
+}
+
+function EstimateInfo({ color = "#9AA0AD" }: { color?: string }) {
+  const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const visible = open || hovered;
+
+  return (
+    <span
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={(e) => {
+        e.stopPropagation();
+        setOpen((current) => !current);
+      }}
+      onBlur={() => setOpen(false)}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        cursor: "help",
+        color,
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label="Nutrition estimate info"
+    >
+      <Info size={13} weight="bold" />
+      {visible && (
+        <span style={{
+          position: "absolute",
+          top: "calc(100% + 8px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 230,
+          background: "#1A2744",
+          color: "#fff",
+          borderRadius: 12,
+          padding: "10px 12px",
+          zIndex: 80,
+          boxShadow: "0 8px 28px rgba(26,20,20,.22)",
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontSize: 11.5,
+          fontWeight: 700,
+          lineHeight: 1.45,
+          whiteSpace: "normal",
+          pointerEvents: "none",
+        }}>
+          <span style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 12, height: 6, overflow: "hidden" }}>
+            <span style={{ display: "block", width: 10, height: 10, background: "#1A2744", transform: "rotate(45deg)", margin: "3px auto 0" }} />
+          </span>
+          Estimated from your meal messages. Values are approximate and not medical advice.
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -478,7 +538,7 @@ const RANK_PALETTE = [
   { bg: "var(--he-violet-bg)", accent: "#8B7FE8", text: "#6A5BD0", caption: "Room to improve" },
 ];
 
-type MemberRow = { member: FamilyMember; summary: Summary | null };
+type MemberRow = { member: FamilyMember; summary: Summary | null; logs: HealthLog[] };
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -548,6 +608,7 @@ export default function DashboardPage() {
         activeMembers.map(async (member) => ({
           member,
           summary: await getMemberSummary(member.id, token).catch(() => null),
+          logs: await getMemberLogs(member.id, token, 7).catch(() => []),
         }))
       );
       setMemberRows(rows);
@@ -584,16 +645,24 @@ export default function DashboardPage() {
   const goalSteps = user?.goal_steps ?? null;
   const goalSleep = user?.goal_sleep_hours ?? null;
 
-  const proteinPct = goalProtein ? Math.min(Math.round((proteinAvg / goalProtein) * 100), 100) : undefined;
-  const caloriesPct = goalCalories ? Math.min(Math.round((caloriesAvg / goalCalories) * 100), 100) : undefined;
   const stepsAvgPct = goalSteps ? Math.min(Math.round((stepsAvg / goalSteps) * 100), 100) : undefined;
 
   const todayIST = new Date().toLocaleDateString("en-CA");
   const yesterdayDate = new Date(); yesterdayDate.setDate(yesterdayDate.getDate() - 1);
   const yesterdayIST = yesterdayDate.toLocaleDateString("en-CA");
-  const todaySteps = logs.find((l) => l.logged_at === todayIST)?.steps ?? 0;
-  const yesterdaySteps = logs.find((l) => l.logged_at === yesterdayIST)?.steps ?? 0;
+  const todayLog = logs.find((l) => l.logged_at === todayIST);
+  const yesterdayLog = logs.find((l) => l.logged_at === yesterdayIST);
+  const todayProtein = todayLog?.protein_g ?? 0;
+  const todayCalories = todayLog?.calories ?? 0;
+  const todaySteps = todayLog?.steps ?? 0;
+  const yesterdayProtein = yesterdayLog?.protein_g ?? 0;
+  const yesterdayCalories = yesterdayLog?.calories ?? 0;
+  const yesterdaySteps = yesterdayLog?.steps ?? 0;
+  const proteinTodayPct = goalProtein ? Math.min(Math.round((todayProtein / goalProtein) * 100), 100) : undefined;
+  const caloriesTodayPct = goalCalories ? Math.min(Math.round((todayCalories / goalCalories) * 100), 100) : undefined;
   const stepsTodayPct = goalSteps ? Math.min(Math.round((todaySteps / goalSteps) * 100), 100) : undefined;
+  const proteinVsYesterday = todayProtein - yesterdayProtein;
+  const caloriesVsYesterday = todayCalories - yesterdayCalories;
   const stepsVsYesterday = todaySteps - yesterdaySteps;
 
   const stepsAvgPctForScore = Math.min(Math.round((stepsAvg / (goalSteps ?? 10000)) * 100), 100);
@@ -621,11 +690,6 @@ export default function DashboardPage() {
   const prevWeekAvgs = useMemo(() => rangeAverages(logs, 7, 13), [logs]);
   const prevWeekScore = prevWeekAvgs ? scoreFromAverages(prevWeekAvgs.steps, prevWeekAvgs.protein, prevWeekAvgs.calories) : null;
   const scoreDelta = personalScore !== null && prevWeekScore !== null ? personalScore - prevWeekScore : null;
-  const proteinDeltaPct = prevWeekAvgs && prevWeekAvgs.protein > 0
-    ? Math.round(((proteinAvg - prevWeekAvgs.protein) / prevWeekAvgs.protein) * 100)
-    : null;
-  const caloriesDeltaAbs = prevWeekAvgs ? Math.round(caloriesAvg - prevWeekAvgs.calories) : null;
-
   const daysLoggedThisWeek = useMemo(() => {
     const last7Dates = Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
@@ -642,24 +706,7 @@ export default function DashboardPage() {
     ? "Keep logging to build your streak."
     : "Start logging today to see your trends.";
 
-  const daysGoalMet = goalSteps ? weeklySteps.filter((d) => d.value >= goalSteps).length : 0;
   const bestDay = weeklySteps.reduce((best, d) => (d.value > best.value ? d : best), weeklySteps[0] ?? { label: "—", value: 0 });
-  const weeklyCalorieTotal = Math.round(caloriesAvg * 7);
-
-  const weeklyInsights: { icon: React.ReactNode; text: string }[] = [];
-  if (daysGoalMet > 0) {
-    weeklyInsights.push({ icon: <TrendUp size={15} weight="bold" color="var(--he-green-deep)" />, text: `Great job! You hit your step goal ${daysGoalMet} of 7 days.` });
-  }
-  if (proteinDeltaPct !== null && proteinDeltaPct !== 0) {
-    weeklyInsights.push({ icon: <FEMeat size={15} />, text: `Protein intake ${proteinDeltaPct > 0 ? "improved" : "dropped"} by ${Math.abs(proteinDeltaPct)}% this week.` });
-  }
-  if (weeklyCalorieTotal > 0) {
-    weeklyInsights.push({ icon: <FEFlame size={15} />, text: `You logged ~${weeklyCalorieTotal.toLocaleString()} kcal this week.` });
-  }
-  weeklyInsights.push({ icon: <FEMoon size={15} />, text: "Sleep tracking is coming soon." });
-  if (weeklyInsights.length === 1) {
-    weeklyInsights.unshift({ icon: <Warning size={15} weight="bold" color="var(--he-orange-deep)" />, text: "No health data logged yet this week." });
-  }
 
   const motivCopy = personalTier.label === "All good"
     ? { title: "Keep it up!", message: "You're doing great this week. Stay consistent and crush your goals!" }
@@ -811,10 +858,14 @@ export default function DashboardPage() {
               )}
             </div>
             <div style={{ display: "flex", alignItems: "stretch", gap: 16, overflowX: "auto", padding: "10px 4px 12px" }}>
-              {memberRows.map(({ member, summary: memberSummary }) => {
+              {memberRows.map(({ member, summary: memberSummary, logs: memberLogs }) => {
                 const score = computeScore(memberSummary);
                 const tier = scoreTier(score);
                 const avatarLetter = (member.name ?? member.label).charAt(0).toUpperCase();
+                const memberTodayLog = memberLogs.find((l) => l.logged_at === todayIST);
+                const memberTodayCalories = memberTodayLog?.calories ?? null;
+                const memberTodayProtein = memberTodayLog?.protein_g ?? null;
+                const memberTodaySteps = memberTodayLog?.steps ?? null;
                 return (
                   <div
                     key={member.id}
@@ -864,18 +915,18 @@ export default function DashboardPage() {
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, marginTop: 20, textAlign: "center" }}>
                       <div>
                         <div style={{ display: "flex", justifyContent: "center" }}><Flame size={20} color="#FF9F45" /></div>
-                        <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{memberSummary?.avg_calories != null ? memberSummary.avg_calories.toFixed(0) : "—"}</p>
-                        <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Cal</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{memberTodayCalories != null ? memberTodayCalories.toLocaleString() : "—"}</p>
+                        <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Cal today</p>
                       </div>
                       <div>
                         <div style={{ display: "flex", justifyContent: "center" }}><Dumbbell size={20} color="#4F9BF5" /></div>
-                        <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{memberSummary?.avg_protein_g != null ? `${memberSummary.avg_protein_g.toFixed(0)}g` : "—"}</p>
-                        <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Protein</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{memberTodayProtein != null ? `${memberTodayProtein.toFixed(0)}g` : "—"}</p>
+                        <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Protein today</p>
                       </div>
                       <div>
                         <div style={{ display: "flex", justifyContent: "center" }}><Footprints size={20} color="#20A865" /></div>
-                        <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{memberSummary?.avg_steps != null ? Math.round(memberSummary.avg_steps).toLocaleString() : "—"}</p>
-                        <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Steps</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{memberTodaySteps != null ? memberTodaySteps.toLocaleString() : "—"}</p>
+                        <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Steps today</p>
                       </div>
                     </div>
                     <button
@@ -991,8 +1042,8 @@ export default function DashboardPage() {
                         </p>
                         <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: palette.text }}>{palette.caption}</p>
                       </div>
-                      <span style={{ fontSize: 14, fontWeight: 800, color: "#1A2744", flexShrink: 0 }}>
-                        {row.score ?? "—"}<span style={{ fontSize: 11, fontWeight: 600, color: "#9AA0AD" }}>/100</span>
+                      <span style={{ flexShrink: 0 }}>
+                        <ScoreText score={row.score} tier={scoreTier(row.score)} size="sm" />
                       </span>
                     </div>
                     <div className="db-bar-track" style={{ margin: 0, height: 5 }}>
@@ -1005,8 +1056,8 @@ export default function DashboardPage() {
         </div>
         </div>
 
-        <div style={{ display: "flex", gap: 16, alignItems: "stretch", flexWrap: "wrap" }}>
-          <div className="db-card" style={{ flex: "1 1 0", minWidth: 380, padding: "24px 26px 22px", position: "relative", overflow: "hidden" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 11fr) minmax(420px, 9fr)", gap: 16, alignItems: "stretch" }}>
+          <div className="db-card" style={{ minWidth: 0, padding: "24px 26px 22px", position: "relative", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 22 }}>
               <span style={{ fontSize: 17, fontWeight: 800, color: "#1A2744", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Your Weekly Score</span>
               <div ref={scoreInfoRef} style={{ position: "relative", display: "flex" }}>
@@ -1030,8 +1081,8 @@ export default function DashboardPage() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                       {[
                         { label: "Steps", detail: "avg vs 10,000/day goal", weight: "40 pts" },
-                        { label: "Protein", detail: "avg vs 50 g/day goal", weight: "30 pts" },
-                        { label: "Calories", detail: "avg vs 2,000 kcal/day goal", weight: "30 pts" },
+                        { label: "Protein", detail: "est. avg vs 50 g/day goal", weight: "30 pts" },
+                        { label: "Calories", detail: "est. avg vs 2,000 kcal/day goal", weight: "30 pts" },
                       ].map(({ label, detail, weight }) => (
                         <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                           <div>
@@ -1043,7 +1094,7 @@ export default function DashboardPage() {
                       ))}
                     </div>
                     <p style={{ margin: "10px 0 0", fontSize: 10.5, color: "#9AA0AD", lineHeight: 1.5 }}>
-                      Each metric is scored as a % of goal, then weighted. Averages are taken over the last 7 days.
+                      Each metric is scored as a % of goal, then weighted. Food nutrition values are estimates from your logged meals.
                     </p>
                   </div>
                 )}
@@ -1076,25 +1127,29 @@ export default function DashboardPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FEShoe size={20} />
-                    <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Steps</span>
+                    <span style={{ width: 78, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Steps</span>
                     <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: `${(stepsPts / 40) * 100}%`, background: "var(--he-green)" }} /></div>
                     <span style={{ width: 44, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#9AA0AD" }}>{stepsPts}/40</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <FEMeat size={20} />
-                    <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Protein</span>
+                    <FEProtein size={20} />
+                    <span style={{ width: 78, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      Protein <EstimateInfo />
+                    </span>
                     <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: `${(proteinPts / 30) * 100}%`, background: "var(--he-coral)" }} /></div>
                     <span style={{ width: 44, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#9AA0AD" }}>{proteinPts}/30</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FEWheat size={20} />
-                    <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Calories</span>
+                    <span style={{ width: 78, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      Calories <EstimateInfo />
+                    </span>
                     <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: `${(caloriesPts / 30) * 100}%`, background: "#FFB877" }} /></div>
                     <span style={{ width: 44, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#9AA0AD" }}>{caloriesPts}/30</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <FEMoon size={20} />
-                    <span style={{ width: 60, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Sleep</span>
+                    <span style={{ width: 78, fontSize: 12.5, fontWeight: 700, color: "#2C2F3A" }}>Sleep</span>
                     <div className="db-bar-track" style={{ flex: 1, margin: 0 }}><div className="db-bar-fill" style={{ width: `${Math.min(Math.round((sleepAvg / 8) * 100), 100)}%`, background: "#8B7FE8" }} /></div>
                     <span style={{ width: 44, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#9AA0AD" }}>{sleepAvg ? `${sleepAvg.toFixed(1)}h` : "—"}</span>
                   </div>
@@ -1104,82 +1159,107 @@ export default function DashboardPage() {
 
             <div style={{ height: 1, background: "var(--he-hairline)", margin: "22px 0" }} />
 
-            <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 260px" }}>
-                <p style={{ margin: "0 0 14px", fontSize: 13.5, fontWeight: 800, color: "#1A2744" }}>7-Day Activity</p>
-                <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 18 }}>
+              <div style={{ border: "1px solid var(--he-card-border)", borderRadius: 20, padding: "20px 22px", background: "#fff", boxShadow: "0 10px 26px rgba(31,28,35,.04)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 22 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
+                    <span style={{ width: 48, height: 48, borderRadius: 16, background: "var(--he-orange-bg)", display: "grid", placeItems: "center", flex: "none" }}>
+                      <CalendarBlank size={24} weight="bold" color="var(--he-orange-deep)" />
+                    </span>
+                    <span>
+                      <span style={{ display: "block", color: "#1A2744", fontSize: 20, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: "-.3px" }}>7-Day Activity</span>
+                      <span style={{ display: "block", color: "#7C84A8", fontSize: 13.5, fontWeight: 700, marginTop: 2 }}>Your logging this week</span>
+                    </span>
+                  </div>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7, borderRadius: 999, background: "var(--he-green-bg)", color: "var(--he-green-deep)", padding: "8px 13px", fontSize: 13.5, fontWeight: 900, whiteSpace: "nowrap" }}>
+                    <CheckCircle size={16} weight="fill" />
+                    {daysLoggedThisWeek}/7 days
+                  </span>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 10, alignItems: "center" }}>
                   {weeklySteps.map((d, i) => {
                     const status = d.value === 0 ? "missed" : goalSteps && d.value >= goalSteps ? "met" : d.value > 0 ? "partial" : "missed";
-                    const color = status === "met" ? "var(--he-green)" : status === "partial" ? "var(--he-blue)" : "var(--he-coral)";
+                    const colors = status === "met"
+                      ? { bg: "var(--he-green-bg)", border: "#CFEFDC", text: "var(--he-green-deep)" }
+                      : status === "partial"
+                      ? { bg: "var(--he-blue-bg)", border: "#D4E8FF", text: "var(--he-blue-deep)" }
+                      : { bg: "var(--he-coral-bg)", border: "#FFD2D2", text: "var(--he-coral-deep)" };
                     return (
-                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
-                        <span style={{ fontSize: 10.5, fontWeight: 700, color: "#9AA0AD" }}>{d.label}</span>
-                        <div style={{ width: 28, height: 28, borderRadius: "50%", background: color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          {status === "met" && <CheckCircle size={14} weight="fill" color="#fff" />}
-                          {status === "partial" && <Minus size={13} weight="bold" color="#fff" />}
-                          {status === "missed" && <X size={12} weight="bold" color="#fff" />}
-                        </div>
+                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, minWidth: 0 }}>
+                        <span style={{ color: "#5A6170", fontSize: 12, fontWeight: 800 }}>{d.label}</span>
+                        <span style={{ width: 48, height: 48, borderRadius: "50%", background: colors.bg, border: `1.5px solid ${colors.border}`, display: "grid", placeItems: "center", color: colors.text, boxShadow: "0 8px 18px rgba(31,28,35,.05)" }}>
+                          {status === "met" && <CheckCircle size={22} weight="bold" />}
+                          {status === "partial" && <Minus size={22} weight="bold" />}
+                          {status === "missed" && <X size={20} weight="bold" />}
+                        </span>
                       </div>
                     );
                   })}
                 </div>
-                <div style={{ display: "flex", gap: 14, marginTop: 16, fontSize: 11, color: "#9AA0AD", fontWeight: 600, flexWrap: "wrap" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}><CheckCircle size={13} weight="fill" color="var(--he-green)" /> Goal met</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}><Minus size={13} weight="bold" color="var(--he-blue)" /> Partial</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}><X size={13} weight="bold" color="var(--he-coral)" /> Missed</span>
+
+                <div style={{ borderTop: "1px dashed #ECE8EE", marginTop: 22, paddingTop: 16, display: "flex", justifyContent: "center", gap: 22, flexWrap: "wrap", color: "#7C84A8", fontSize: 12.5, fontWeight: 800 }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}><CheckCircle size={17} weight="fill" color="var(--he-green)" /> Goal met</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}><Minus size={17} weight="bold" color="var(--he-blue)" /> Partial</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}><X size={16} weight="bold" color="var(--he-coral)" /> Missed</span>
                 </div>
               </div>
 
-              <div style={{ flex: "1 1 280px", minWidth: 240 }}>
-                <p style={{ margin: "0 0 14px", fontSize: 13.5, fontWeight: 800, color: "#1A2744" }}>Weekly Insights</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                  {weeklyInsights.map((ins, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9, fontSize: 12.5 }}>
-                      <span style={{ flexShrink: 0, marginTop: 1 }}>{ins.icon}</span>
-                      <span style={{ color: "#2C2F3A" }}>{ins.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <div style={{
-              marginTop: 22, background: "var(--he-green-bg)", borderRadius: 14, padding: "12px 18px",
-              display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap",
-              fontSize: 12.5, fontWeight: 700, color: "var(--he-green-deep)",
+              marginTop: 18,
+              border: "1px solid #CFEFDC",
+              background: "linear-gradient(135deg, #F7FFFA, #FFFFFF)",
+              borderRadius: 20,
+              padding: "16px 18px",
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: 14,
+              alignItems: "center",
             }}>
-              <span>🏆 Best day: {bestDay.label}</span>
-              <span style={{ opacity: 0.4 }}>•</span>
-              <span>👟 Most steps: {bestDay.value.toLocaleString()}</span>
-              <span style={{ opacity: 0.4 }}>•</span>
-              <span>🔥 Logging streak: {streak} {streak === 1 ? "day" : "days"}</span>
+              {[
+                { icon: "🏆", label: "Best day", value: bestDay.label, color: "var(--he-green-deep)" },
+                { icon: "👟", label: "Most steps", value: `${bestDay.value.toLocaleString()} steps`, color: "var(--he-blue-deep)" },
+                { icon: "🔥", label: "Logging streak", value: `${streak} ${streak === 1 ? "day" : "days"}`, color: "var(--he-orange-deep)" },
+              ].map((item, index) => (
+                <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, minWidth: 0, borderLeft: index === 0 ? "none" : "1px solid #DDEFE5", paddingLeft: index === 0 ? 0 : 14 }}>
+                  <span style={{ width: 44, height: 44, borderRadius: "50%", background: index === 0 ? "var(--he-green-bg)" : index === 1 ? "var(--he-blue-bg)" : "var(--he-orange-bg)", display: "grid", placeItems: "center", fontSize: 20, flex: "none" }}>{item.icon}</span>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: "block", color: "#7C84A8", fontSize: 11.5, fontWeight: 800, whiteSpace: "nowrap" }}>{item.label}</span>
+                    <span style={{ display: "block", color: item.color, fontSize: 18, fontWeight: 900, lineHeight: 1.12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.value}</span>
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div style={{ flex: "1 1 0", minWidth: 300, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, alignContent: "start" }}>
+          <div style={{ minWidth: 0, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10, alignContent: "start" }}>
               <MetricTile
-                icon={<FEMeat size={16} />} label="Protein"
+                icon={<FEProtein size={16} />} label="Protein today"
                 color="var(--he-coral)" deepColor="var(--he-coral-deep)" chipBg="var(--he-coral-bg-2)" stripBg="var(--he-coral-bg)"
-                value={proteinAvg ? proteinAvg.toFixed(0) : "—"} unit="g"
+                value={todayProtein ? todayProtein.toFixed(0) : "—"} unit="g"
                 goalText={goalProtein ? `of ${goalProtein}g goal` : undefined}
-                pct={proteinPct}
-                deltaDown={proteinDeltaPct !== null && proteinDeltaPct < 0}
-                deltaText={proteinDeltaPct !== null ? `${Math.abs(proteinDeltaPct)}% vs last week` : "No data yet"}
+                pct={proteinTodayPct}
+                deltaDown={proteinVsYesterday < 0}
+                deltaText={`${Math.abs(proteinVsYesterday).toFixed(0)}g vs yesterday`}
                 sparkline={proteinSeries}
                 onClick={() => setMetricDetail({ label: "Protein", data: weeklyProtein, color: "#FF6B6B", unit: "g", goal: goalProtein ?? undefined, decimals: 0 })}
                 onSetGoal={() => setShowGoals(true)}
+                estimated
               />
               <MetricTile
-                icon={<FEWheat size={16} />} label="Calories"
+                icon={<FEWheat size={16} />} label="Calories today"
                 color="var(--he-orange)" deepColor="var(--he-orange-deep)" chipBg="var(--he-orange-bg-2)" stripBg="var(--he-orange-bg)"
-                value={caloriesAvg ? caloriesAvg.toFixed(0) : "—"} unit="kcal"
+                value={todayCalories ? todayCalories.toLocaleString() : "—"} unit="kcal"
                 goalText={goalCalories ? `of ${goalCalories.toLocaleString()} kcal goal` : undefined}
-                pct={caloriesPct}
-                deltaDown={caloriesDeltaAbs !== null && caloriesDeltaAbs < 0}
-                deltaText={caloriesDeltaAbs !== null ? `${Math.abs(caloriesDeltaAbs)} kcal vs last week` : "No data yet"}
+                pct={caloriesTodayPct}
+                deltaDown={caloriesVsYesterday < 0}
+                deltaText={`${Math.abs(caloriesVsYesterday).toLocaleString()} kcal vs yesterday`}
                 sparkline={caloriesSeries}
                 onClick={() => setMetricDetail({ label: "Calories", data: weeklyCalories, color: "#FF9F45", unit: "kcal", goal: goalCalories ?? undefined })}
                 onSetGoal={() => setShowGoals(true)}
+                estimated
               />
               <MetricTile
                 icon={<FEShoe size={16} />} label="Steps today"
@@ -1272,7 +1352,7 @@ export default function DashboardPage() {
       {showAddFamily && (
         <AddFamilyModal
           onClose={() => setShowAddFamily(false)}
-          onAdded={(member) => setMemberRows((rows) => [...rows, { member, summary: null }])}
+          onAdded={(member) => setMemberRows((rows) => [...rows, { member, summary: null, logs: [] }])}
         />
       )}
 

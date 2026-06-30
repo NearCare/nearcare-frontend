@@ -109,7 +109,7 @@ export default function LoginPage() {
             <em style={{ color: "#E85C5C", fontStyle: "normal" }}>FamCare</em>
           </h1>
           <p style={{ marginTop: 10, fontSize: 13, color: "#6B7A9A", lineHeight: 1.65, maxWidth: 340 }}>
-            Track appointments, monitor your health journey, and find nearby providers — your complete health companion. ❤️
+            Set WhatsApp medicine reminders, confirm doses, and keep your family updated from one simple dashboard.
           </p>
         </div>
 

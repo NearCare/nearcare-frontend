@@ -1,16 +1,18 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle, Warning, Sparkle, CaretRight, UserPlus, Trophy } from "@phosphor-icons/react";
+import { CheckCircle, Warning, Sparkle, CaretRight, UserPlus, Trophy, Info } from "@phosphor-icons/react";
 import { Flame, Dumbbell, Footprints } from "lucide-react";
 import {
   getFamilyMembers,
+  getMemberLogs,
   getMemberSummary,
   getUserSummary,
   type User,
+  type HealthLog,
   type Summary,
   type FamilyMember,
 } from "@/lib/api";
-import { scoreTier, computeScore, ScoreRing } from "../components/Score";
+import { scoreTier, computeScore, ScoreRing, ScoreText } from "../components/Score";
 
 const RANK_PALETTE = [
   { bg: "#FFF8E7", accent: "#F5A623", text: "#A06400", caption: "Top of the family!" },
@@ -18,11 +20,61 @@ const RANK_PALETTE = [
   { bg: "#FFF1EC", accent: "#E8855C", text: "#A04830", caption: "Keep going!" },
   { bg: "#F0F4FF", accent: "#6B8FE8", text: "#3050A0", caption: "Building momentum" },
 ];
+
+function EstimateInfo() {
+  const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const visible = open || hovered;
+
+  return (
+    <span
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={(event) => {
+        event.stopPropagation();
+        setOpen((current) => !current);
+      }}
+      onBlur={() => setOpen(false)}
+      style={{ display: "inline-flex", position: "relative", cursor: "help", color: "#9AA0AD" }}
+      tabIndex={0}
+      role="button"
+      aria-label="Nutrition estimate info"
+    >
+      <Info size={11} weight="bold" />
+      {visible && (
+        <span style={{
+          position: "absolute",
+          top: "calc(100% + 8px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 210,
+          background: "#1A2744",
+          color: "#fff",
+          borderRadius: 12,
+          padding: "10px 12px",
+          zIndex: 80,
+          boxShadow: "0 8px 28px rgba(26,20,20,.22)",
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontSize: 11,
+          fontWeight: 700,
+          lineHeight: 1.45,
+          whiteSpace: "normal",
+          pointerEvents: "none",
+        }}>
+          <span style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 12, height: 6, overflow: "hidden" }}>
+            <span style={{ display: "block", width: 10, height: 10, background: "#1A2744", transform: "rotate(45deg)", margin: "3px auto 0" }} />
+          </span>
+          Estimated from meal messages. Values are approximate.
+        </span>
+      )}
+    </span>
+  );
+}
 import Sidebar from "../components/Sidebar";
 import FamilyMemberModal from "../components/FamilyMemberModal";
 import AddFamilyModal from "../components/AddFamilyModal";
 
-type MemberRow = { member: FamilyMember; summary: Summary | null };
+type MemberRow = { member: FamilyMember; summary: Summary | null; logs: HealthLog[] };
 
 export default function FamilyOverviewPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -53,6 +105,7 @@ export default function FamilyOverviewPage() {
           activeMembers.map(async (member) => ({
             member,
             summary: await getMemberSummary(member.id, token).catch(() => null),
+            logs: await getMemberLogs(member.id, token, 7).catch(() => []),
           }))
         );
         setMemberRows(rows);
@@ -76,6 +129,7 @@ export default function FamilyOverviewPage() {
     ];
     return rows.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
   }, [user, personalSummary, memberRows]);
+  const todayIST = new Date().toLocaleDateString("en-CA");
 
   if (loading) {
     return (
@@ -169,11 +223,15 @@ export default function FamilyOverviewPage() {
           </div>
         ) : (
           <div style={{ display: "flex", alignItems: "stretch", gap: 16, flexWrap: "wrap" }}>
-            {memberRows.map(({ member, summary: memberSummary }) => {
-              const score = computeScore(memberSummary);
-              const tier = scoreTier(score);
-              const avatarLetter = (member.name ?? member.label).charAt(0).toUpperCase();
-              return (
+              {memberRows.map(({ member, summary: memberSummary, logs }) => {
+                const score = computeScore(memberSummary);
+                const tier = scoreTier(score);
+                const avatarLetter = (member.name ?? member.label).charAt(0).toUpperCase();
+                const todayLog = logs.find((l) => l.logged_at === todayIST);
+                const todayCalories = todayLog?.calories ?? null;
+                const todayProtein = todayLog?.protein_g ?? null;
+                const todaySteps = todayLog?.steps ?? null;
+                return (
                 <div
                   key={member.id}
                   className="fo-member-card"
@@ -222,18 +280,18 @@ export default function FamilyOverviewPage() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6, marginTop: 20, textAlign: "center" }}>
                     <div>
                       <div style={{ display: "flex", justifyContent: "center" }}><Flame size={20} color="#FF9F45" /></div>
-                      <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{memberSummary?.avg_calories != null ? memberSummary.avg_calories.toFixed(0) : "—"}</p>
-                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Cal</p>
+                      <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{todayCalories != null ? todayCalories.toLocaleString() : "—"}</p>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8", display: "inline-flex", alignItems: "center", gap: 3 }}>Cal today <EstimateInfo /></p>
                     </div>
                     <div>
                       <div style={{ display: "flex", justifyContent: "center" }}><Dumbbell size={20} color="#4F9BF5" /></div>
-                      <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{memberSummary?.avg_protein_g != null ? `${memberSummary.avg_protein_g.toFixed(0)}g` : "—"}</p>
-                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Protein</p>
+                      <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{todayProtein != null ? `${todayProtein.toFixed(0)}g` : "—"}</p>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8", display: "inline-flex", alignItems: "center", gap: 3 }}>Protein today <EstimateInfo /></p>
                     </div>
                     <div>
                       <div style={{ display: "flex", justifyContent: "center" }}><Footprints size={20} color="#20A865" /></div>
-                      <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{memberSummary?.avg_steps != null ? Math.round(memberSummary.avg_steps).toLocaleString() : "—"}</p>
-                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Steps</p>
+                      <p style={{ margin: "6px 0 0", fontSize: 14, fontWeight: 800, color: "#1A2744" }}>{todaySteps != null ? todaySteps.toLocaleString() : "—"}</p>
+                      <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: "#7C84A8" }}>Steps today</p>
                     </div>
                   </div>
                   <button
@@ -339,9 +397,8 @@ export default function FamilyOverviewPage() {
                         </p>
                         <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: palette.text }}>{palette.caption}</p>
                       </div>
-                      <span style={{ fontSize: 15, fontWeight: 800, color: "#1A2744", flexShrink: 0 }}>
-                        {row.score ?? "—"}
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "#9AA0AD" }}>/100</span>
+                      <span style={{ flexShrink: 0 }}>
+                        <ScoreText score={row.score} tier={scoreTier(row.score)} size="sm" />
                       </span>
                     </div>
                     <div className="db-bar-track" style={{ margin: 0, height: 5 }}>
@@ -362,7 +419,7 @@ export default function FamilyOverviewPage() {
       {showAddFamily && (
         <AddFamilyModal
           onClose={() => setShowAddFamily(false)}
-          onAdded={(member) => setMemberRows((rows) => [...rows, { member, summary: null }])}
+          onAdded={(member) => setMemberRows((rows) => [...rows, { member, summary: null, logs: [] }])}
         />
       )}
     </div>

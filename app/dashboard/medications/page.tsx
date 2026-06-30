@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Bell,
   CalendarBlank,
@@ -37,18 +38,34 @@ type PersonOption = {
   label: string;
 };
 
+type DayPart = "Morning" | "Afternoon" | "Evening" | "Night";
+
+type ScheduledTime = {
+  dayPart: DayPart;
+  time: string;
+};
+
+type WeekDay = {
+  value: number;
+  label: string;
+  short: string;
+};
+
+type SelectOption = {
+  value: string;
+  label: string;
+};
+
 type MedicineForm = {
   personId: string;
   name: string;
   strength: string;
-  form: "Tablet" | "Capsule" | "Syrup" | "Injection";
-  dose: string;
-  timing: "After food" | "Before food" | "Anytime";
-  times: string[];
+  form: "Tablet" | "Ointment" | "Syrup" | "Injection";
+  dayPart: DayPart;
+  times: ScheduledTime[];
   startDate: string;
-  duration: "Ongoing" | "7 days" | "14 days" | "Custom";
+  daysOfWeek: number[];
   reminders: boolean;
-  notes: string;
 };
 
 type ScheduleRow = {
@@ -63,6 +80,7 @@ type ScheduleRow = {
   tone: string;
   status: string;
   actionStatus: TodayDose["status"];
+  canMarkTaken: boolean;
 };
 
 const todayISO = () => new Date().toLocaleDateString("en-CA");
@@ -72,14 +90,29 @@ const defaultForm = (personId: string): MedicineForm => ({
   name: "",
   strength: "",
   form: "Tablet",
-  dose: "1 tablet",
-  timing: "After food",
-  times: ["08:00"],
+  dayPart: "Morning",
+  times: [],
   startDate: todayISO(),
-  duration: "Ongoing",
+  daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
   reminders: true,
-  notes: "",
 });
+
+const DEFAULT_TIMES_BY_DAY_PART: Record<DayPart, string> = {
+  Morning: "08:00",
+  Afternoon: "13:00",
+  Evening: "18:00",
+  Night: "21:00",
+};
+
+const WEEK_DAYS: WeekDay[] = [
+  { value: 0, label: "Sunday", short: "Sun" },
+  { value: 1, label: "Monday", short: "Mon" },
+  { value: 2, label: "Tuesday", short: "Tue" },
+  { value: 3, label: "Wednesday", short: "Wed" },
+  { value: 4, label: "Thursday", short: "Thu" },
+  { value: 5, label: "Friday", short: "Fri" },
+  { value: 6, label: "Saturday", short: "Sat" },
+];
 
 function displayName(person: PersonOption | undefined) {
   if (!person) return "family";
@@ -90,12 +123,6 @@ function toApiForm(form: MedicineForm["form"]) {
   return form.toLowerCase();
 }
 
-function toApiTiming(timing: MedicineForm["timing"]) {
-  if (timing === "After food") return "after_food";
-  if (timing === "Before food") return "before_food";
-  return "anytime";
-}
-
 function formatTiming(timing: string | null) {
   if (timing === "after_food") return "After food";
   if (timing === "before_food") return "Before food";
@@ -104,24 +131,14 @@ function formatTiming(timing: string | null) {
   return "Anytime";
 }
 
-function addDays(date: string, days: number) {
-  const value = new Date(`${date}T00:00:00`);
-  value.setDate(value.getDate() + days);
-  return value.toLocaleDateString("en-CA");
-}
-
-function endDateFor(form: MedicineForm) {
-  if (form.duration === "7 days") return addDays(form.startDate, 6);
-  if (form.duration === "14 days") return addDays(form.startDate, 13);
-  return null;
-}
-
-function formatTimeLabel(value: string) {
-  return new Date(value).toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
+function formatTimeLabel(timeOfDay: string) {
+  const [hourPart = "0", minutePart = "0"] = timeOfDay.split(":");
+  const hour = Number(hourPart);
+  const minute = Number(minutePart);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return timeOfDay;
+  const period = hour >= 12 ? "pm" : "am";
+  const hour12 = hour % 12 || 12;
+  return `${hour12.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")} ${period}`;
 }
 
 function statusLabel(status: TodayDose["status"]) {
@@ -181,6 +198,121 @@ function TextField({
   );
 }
 
+function FancySelect({
+  value,
+  options,
+  onChange,
+  tone = "neutral",
+  compact = false,
+}: {
+  value: string;
+  options: SelectOption[];
+  onChange: (value: string) => void;
+  tone?: "neutral" | "green";
+  compact?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((option) => option.value === value) ?? options[0];
+  const isGreen = tone === "green";
+
+  return (
+    <div
+      tabIndex={0}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setOpen(false);
+        }
+      }}
+      style={{ position: "relative", minWidth: compact ? 190 : undefined }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        style={{
+          width: "100%",
+          height: compact ? 38 : 44,
+          border: `1.5px solid ${isGreen ? "#D8F5E4" : "var(--he-card-border)"}`,
+          borderRadius: compact ? 12 : 13,
+          padding: compact ? "0 36px 0 13px" : "0 38px 0 13px",
+          background: isGreen ? "var(--he-green-bg)" : "#FAF9FA",
+          color: isGreen ? "var(--he-green-deep)" : "var(--he-ink-1)",
+          fontFamily: "inherit",
+          fontSize: compact ? 13 : 13.5,
+          fontWeight: 800,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          boxShadow: open ? "0 8px 22px rgba(31,28,35,.1)" : "none",
+          outline: "none",
+          textAlign: "left",
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selected?.label}</span>
+        <CaretDown
+          size={14}
+          weight="bold"
+          color={isGreen ? "var(--he-green-deep)" : "var(--he-ink-2)"}
+          style={{ position: "absolute", right: 13, transform: open ? "rotate(180deg)" : "none", transition: "transform .16s ease" }}
+        />
+      </button>
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            right: 0,
+            zIndex: 30,
+            background: "#fff",
+            border: "1.5px solid var(--he-card-border)",
+            borderRadius: 13,
+            boxShadow: "0 16px 34px rgba(31,28,35,.16)",
+            padding: 5,
+            overflow: "hidden",
+          }}
+        >
+          {options.map((option) => {
+            const active = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                style={{
+                  width: "100%",
+                  minHeight: 36,
+                  border: "none",
+                  borderRadius: 9,
+                  background: active ? (isGreen ? "var(--he-green-bg)" : "var(--he-coral-bg)") : "#fff",
+                  color: active ? (isGreen ? "var(--he-green-deep)" : "var(--he-coral-deep)") : "var(--he-ink-2)",
+                  fontFamily: "inherit",
+                  fontSize: 13,
+                  fontWeight: active ? 800 : 700,
+                  cursor: "pointer",
+                  padding: "8px 10px",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span style={{ width: 16, color: active ? "currentColor" : "transparent", fontWeight: 900 }}>✓</span>
+                <span>{option.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AddMedicineDrawer({
   people,
   initialPersonId,
@@ -196,7 +328,11 @@ function AddMedicineDrawer({
 }) {
   const [form, setForm] = useState<MedicineForm>(() => defaultForm(initialPersonId));
   const selectedPerson = people.find((person) => person.id === form.personId);
-  const canSave = form.personId && form.name.trim() && form.strength.trim() && form.times.length > 0;
+  const canSave = form.personId && form.name.trim() && form.times.length > 0 && form.daysOfWeek.length > 0;
+  const personOptions = people.map((person) => ({
+    value: person.id,
+    label: `${person.name} ${person.label === "You" ? "(You)" : ""}`,
+  }));
 
   const update = <K extends keyof MedicineForm>(key: K, value: MedicineForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -209,6 +345,22 @@ function AddMedicineDrawer({
       name: form.name.trim(),
       strength: form.strength.trim(),
     });
+  };
+
+  const addScheduleTime = () => {
+    update("times", [...form.times, { dayPart: form.dayPart, time: DEFAULT_TIMES_BY_DAY_PART[form.dayPart] }]);
+  };
+
+  const removeScheduleTime = (index: number) => {
+    update("times", form.times.filter((_, itemIndex) => itemIndex !== index));
+  };
+
+  const toggleWeekDay = (day: number) => {
+    const selected = form.daysOfWeek.includes(day);
+    const nextDays = selected
+      ? form.daysOfWeek.filter((item) => item !== day)
+      : [...form.daysOfWeek, day].sort((a, b) => a - b);
+    update("daysOfWeek", nextDays);
   };
 
   return (
@@ -233,15 +385,15 @@ function AddMedicineDrawer({
           flexDirection: "column",
           fontFamily: "'Plus Jakarta Sans', var(--font-jakarta), system-ui, sans-serif",
         }}
-      >
-        <div style={{ padding: "24px 24px 18px", borderBottom: "1px solid var(--he-hairline)", display: "flex", alignItems: "flex-start", gap: 14 }}>
-          <div style={{ width: 42, height: 42, borderRadius: 14, background: "var(--he-coral-bg)", display: "grid", placeItems: "center", flex: "none" }}>
-            <Pill size={21} weight="bold" color="var(--he-coral)" />
-          </div>
+	      >
+	        <div style={{ padding: "24px 24px 18px", borderBottom: "1px solid var(--he-hairline)", display: "flex", alignItems: "flex-start", gap: 14 }}>
+	          <div style={{ width: 42, height: 42, borderRadius: 14, background: "var(--he-coral-bg)", display: "grid", placeItems: "center", flex: "none" }}>
+	            <Pill size={21} weight="bold" color="var(--he-coral)" />
+	          </div>
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "var(--he-ink-1)", letterSpacing: "-.4px" }}>Add Medicine</h2>
             <p style={{ margin: "4px 0 0", fontSize: 13, fontWeight: 500, color: "var(--he-ink-3)", lineHeight: 1.5 }}>
-              Set dosage and reminders for {displayName(selectedPerson)}.
+              Set reminders for {displayName(selectedPerson)}.
             </p>
           </div>
           <button onClick={onClose} aria-label="Close" style={{ border: "none", background: "#FAF9FA", width: 34, height: 34, borderRadius: 11, display: "grid", placeItems: "center", cursor: "pointer" }}>
@@ -252,27 +404,12 @@ function AddMedicineDrawer({
         <div style={{ padding: 24, overflowY: "auto", display: "flex", flexDirection: "column", gap: 18 }}>
           <div>
             <FieldLabel>Who is this medicine for?</FieldLabel>
-            <select
+            <FancySelect
               value={form.personId}
-              onChange={(e) => update("personId", e.target.value)}
-              style={{
-                width: "100%",
-                height: 44,
-                border: "1.5px solid #D8F5E4",
-                borderRadius: 13,
-                padding: "0 13px",
-                background: "var(--he-green-bg)",
-                color: "var(--he-green-deep)",
-                fontFamily: "inherit",
-                fontSize: 13.5,
-                fontWeight: 800,
-                outline: "none",
-              }}
-            >
-              {people.map((person) => (
-                <option key={person.id} value={person.id}>{person.name} {person.label === "You" ? "(You)" : ""}</option>
-              ))}
-            </select>
+              options={personOptions}
+              onChange={(nextValue) => update("personId", nextValue)}
+              tone="green"
+            />
           </div>
 
           <div className="med-form-grid">
@@ -289,7 +426,7 @@ function AddMedicineDrawer({
           <div>
             <FieldLabel>Form</FieldLabel>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-              {(["Tablet", "Capsule", "Syrup", "Injection"] as MedicineForm["form"][]).map((option) => {
+              {(["Tablet", "Ointment", "Syrup", "Injection"] as MedicineForm["form"][]).map((option) => {
                 const active = form.form === option;
                 return (
                   <button
@@ -314,68 +451,104 @@ function AddMedicineDrawer({
             </div>
           </div>
 
-          <div className="med-form-grid">
-            <div>
-              <FieldLabel>Dose</FieldLabel>
-              <TextField value={form.dose} onChange={(value) => update("dose", value)} placeholder="1 tablet" />
-            </div>
-            <div>
-              <FieldLabel>When to take</FieldLabel>
-              <select
-                value={form.timing}
-                onChange={(e) => update("timing", e.target.value as MedicineForm["timing"])}
-                style={{ width: "100%", height: 42, border: "1.5px solid var(--he-card-border)", borderRadius: 12, padding: "0 13px", background: "#FAF9FA", fontFamily: "inherit", fontSize: 13.5, fontWeight: 700, color: "var(--he-ink-1)" }}
-              >
-                <option>After food</option>
-                <option>Before food</option>
-                <option>Anytime</option>
-              </select>
-            </div>
-          </div>
-
           <div>
-            <FieldLabel>Schedule</FieldLabel>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-              {form.times.map((time, index) => (
-                <input
-                  key={`${time}-${index}`}
-                  type="time"
-                  value={time}
-                  onChange={(e) => {
-                    const next = [...form.times];
-                    next[index] = e.target.value;
-                    update("times", next);
-                  }}
-                  style={{ height: 38, border: "1.5px solid var(--he-blue-bg-2)", borderRadius: 11, background: "var(--he-blue-bg)", padding: "0 10px", color: "var(--he-blue-deep)", fontWeight: 800, fontFamily: "inherit" }}
-                />
+            <FieldLabel>Reminder times</FieldLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 10 }}>
+              {(["Morning", "Afternoon", "Evening", "Night"] as DayPart[]).map((option) => {
+                const active = form.dayPart === option;
+                return (
+                  <button
+                    key={option}
+                    onClick={() => update("dayPart", option)}
+                    style={{
+                      height: 36,
+                      border: `1.5px solid ${active ? "var(--he-blue-deep)" : "var(--he-card-border)"}`,
+                      borderRadius: 11,
+                      background: active ? "var(--he-blue-bg)" : "#fff",
+                      color: active ? "var(--he-blue-deep)" : "var(--he-ink-2)",
+                      fontFamily: "inherit",
+                      fontSize: 11.5,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+              {form.times.map((schedule, index) => (
+                <div
+                  key={`${schedule.dayPart}-${schedule.time}-${index}`}
+                  style={{ display: "flex", alignItems: "center", gap: 9, border: "1.5px solid var(--he-blue-bg-2)", borderRadius: 12, background: "var(--he-blue-bg)", padding: "8px 9px" }}
+                >
+                  <span style={{ minWidth: 76, color: "var(--he-blue-deep)", fontSize: 12, fontWeight: 800 }}>{schedule.dayPart}</span>
+                  <input
+                    type="time"
+                    value={schedule.time}
+                    onChange={(e) => {
+                      const next = [...form.times];
+                      next[index] = { ...schedule, time: e.target.value };
+                      update("times", next);
+                    }}
+                    style={{ height: 34, border: "1px solid #CFE4FF", borderRadius: 10, background: "#fff", padding: "0 10px", color: "var(--he-blue-deep)", fontWeight: 800, fontFamily: "inherit", flex: 1 }}
+                  />
+                  <button
+                    onClick={() => removeScheduleTime(index)}
+                    aria-label={`Remove time ${index + 1}`}
+                    style={{ height: 34, border: "1px solid #FFD7D7", borderRadius: 10, background: "#fff", color: "var(--he-coral-deep)", padding: "0 10px", fontFamily: "inherit", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                  >
+                    Remove
+                  </button>
+                </div>
               ))}
               <button
-                onClick={() => update("times", [...form.times, "20:00"])}
-                style={{ height: 38, border: "1.5px dashed var(--he-coral)", borderRadius: 11, background: "#fff", color: "var(--he-coral-deep)", padding: "0 12px", fontFamily: "inherit", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+                onClick={addScheduleTime}
+                style={{ height: 40, border: "1.5px dashed var(--he-green)", borderRadius: 12, background: "#fff", color: "var(--he-green-deep)", padding: "0 12px", fontFamily: "inherit", fontSize: 12.5, fontWeight: 800, cursor: "pointer" }}
               >
-                + Add time
+                + Schedule {form.dayPart.toLowerCase()} time
               </button>
             </div>
           </div>
 
-          <div className="med-form-grid">
-            <div>
-              <FieldLabel>Start date</FieldLabel>
-              <TextField type="date" value={form.startDate} onChange={(value) => update("startDate", value)} />
+          <div>
+            <FieldLabel>Repeat on</FieldLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 7 }}>
+              {WEEK_DAYS.map((day) => {
+                const active = form.daysOfWeek.includes(day.value);
+                return (
+                  <button
+                    key={day.value}
+                    type="button"
+                    onClick={() => toggleWeekDay(day.value)}
+                    aria-pressed={active}
+                    title={day.label}
+                    style={{
+                      height: 34,
+                      border: `1.5px solid ${active ? "var(--he-green)" : "var(--he-card-border)"}`,
+                      borderRadius: 11,
+                      background: active ? "var(--he-green-bg)" : "#fff",
+                      color: active ? "var(--he-green-deep)" : "var(--he-ink-2)",
+                      fontFamily: "inherit",
+                      fontSize: 11.5,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {day.short}
+                  </button>
+                );
+              })}
             </div>
-            <div>
-              <FieldLabel>Duration</FieldLabel>
-              <select
-                value={form.duration}
-                onChange={(e) => update("duration", e.target.value as MedicineForm["duration"])}
-                style={{ width: "100%", height: 42, border: "1.5px solid var(--he-card-border)", borderRadius: 12, padding: "0 13px", background: "#FAF9FA", fontFamily: "inherit", fontSize: 13.5, fontWeight: 700, color: "var(--he-ink-1)" }}
-              >
-                <option>Ongoing</option>
-                <option>7 days</option>
-                <option>14 days</option>
-                <option>Custom</option>
-              </select>
-            </div>
+            <p style={{ margin: "7px 0 0", fontSize: 11.5, color: "var(--he-ink-3)", fontWeight: 600 }}>
+              Medicines stay ongoing until you remove them.
+            </p>
+          </div>
+
+          <div>
+            <FieldLabel>Start date</FieldLabel>
+            <TextField type="date" value={form.startDate} onChange={(value) => update("startDate", value)} />
           </div>
 
           <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, border: "1px solid var(--he-hairline)", borderRadius: 14, padding: "13px 14px", cursor: "pointer" }}>
@@ -391,23 +564,13 @@ function AddMedicineDrawer({
             <input type="checkbox" checked={form.reminders} onChange={(e) => update("reminders", e.target.checked)} />
           </label>
 
-          <div>
-            <FieldLabel>Notes</FieldLabel>
-            <textarea
-              value={form.notes}
-              onChange={(e) => update("notes", e.target.value)}
-              placeholder="Optional instructions"
-              rows={3}
-              style={{ width: "100%", border: "1.5px solid var(--he-card-border)", borderRadius: 12, padding: "12px 13px", background: "#FAF9FA", color: "var(--he-ink-1)", fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, outline: "none", resize: "vertical" }}
-            />
-          </div>
-        </div>
+	        </div>
 
         <div style={{ marginTop: "auto", padding: 18, borderTop: "1px solid var(--he-hairline)", display: "flex", gap: 10 }}>
           <button onClick={onClose} disabled={saving} style={{ flex: 1, height: 44, border: "1.5px solid var(--he-card-border)", borderRadius: 13, background: "#fff", color: "var(--he-ink-2)", fontFamily: "inherit", fontSize: 13.5, fontWeight: 800, cursor: saving ? "not-allowed" : "pointer" }}>
             Cancel
           </button>
-          <button onClick={save} disabled={!canSave || saving} style={{ flex: 1.4, height: 44, border: "none", borderRadius: 13, background: canSave && !saving ? "linear-gradient(150deg, var(--he-coral-2), var(--he-coral))" : "#F0A0A0", color: "#fff", fontFamily: "inherit", fontSize: 13.5, fontWeight: 800, cursor: canSave && !saving ? "pointer" : "not-allowed", boxShadow: canSave && !saving ? "0 8px 18px rgba(255,107,107,.28)" : "none" }}>
+          <button onClick={save} disabled={!canSave || saving} style={{ flex: 1.4, height: 44, border: "none", borderRadius: 13, background: canSave && !saving ? "linear-gradient(150deg, #38D184, var(--he-green))" : "#BDE8CF", color: "#fff", fontFamily: "inherit", fontSize: 13.5, fontWeight: 800, cursor: canSave && !saving ? "pointer" : "not-allowed", boxShadow: canSave && !saving ? "0 8px 18px rgba(32,168,101,.24)" : "none" }}>
             {saving ? "Saving..." : "Save Medicine"}
           </button>
         </div>
@@ -448,6 +611,16 @@ function StatCard({
 }
 
 export default function MedicationsPage() {
+  return (
+    <Suspense fallback={null}>
+      <MedicationsContent />
+    </Suspense>
+  );
+}
+
+function MedicationsContent() {
+  const searchParams = useSearchParams();
+  const requestedPersonId = searchParams.get("person");
   const [user, setUser] = useState<User | null>(null);
   const [people, setPeople] = useState<PersonOption[]>([]);
   const [selectedPersonId, setSelectedPersonId] = useState("self");
@@ -485,9 +658,9 @@ export default function MedicationsPage() {
           })),
       ];
       setPeople(options);
-      setSelectedPersonId(options[0]?.id ?? "self");
+      setSelectedPersonId(options.some((option) => option.id === requestedPersonId) ? requestedPersonId! : options[0]?.id ?? "self");
     })();
-  }, []);
+  }, [requestedPersonId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -529,19 +702,24 @@ export default function MedicationsPage() {
   const adherence = completedDoses.length ? Math.round((takenDoses.length / completedDoses.length) * 100) : null;
   const dueSoon = todayDoses.filter((dose) => dose.status === "due" || dose.status === "upcoming").length;
   const avatarLetter = (user?.name ?? "T").charAt(0).toUpperCase();
+  const selectedPersonOptions = people.map((person) => ({
+    value: person.id,
+    label: `${person.name} ${person.label === "You" ? "(You)" : ""}`,
+  }));
 
   const scheduleRows: ScheduleRow[] = todayDoses.map((dose, index) => ({
     id: dose.id,
     medicineId: dose.medicine.id,
     scheduleId: dose.schedule.id,
     scheduledFor: dose.scheduled_for,
-    timeLabel: formatTimeLabel(dose.scheduled_for),
+    timeLabel: formatTimeLabel(dose.schedule.time_of_day),
     name: `${dose.medicine.name}${dose.medicine.strength ? ` ${dose.medicine.strength}` : ""}`,
     dose: dose.medicine.dose,
-    timing: formatTiming(dose.medicine.timing),
+    timing: dose.medicine.timing === "anytime" ? "" : formatTiming(dose.medicine.timing),
     tone: index % 4 === 1 ? "orange" : index % 4 === 2 ? "violet" : index % 4 === 3 ? "blue" : "green",
     status: statusLabel(dose.status),
     actionStatus: dose.status,
+    canMarkTaken: dose.status !== "taken" && dose.status !== "upcoming",
   }));
 
   const openAdd = () => setShowAddDrawer(true);
@@ -571,14 +749,14 @@ export default function MedicationsPage() {
         name: form.name,
         strength: form.strength || null,
         form: toApiForm(form.form),
-        dose: form.dose,
-        timing: toApiTiming(form.timing),
+        dose: "As prescribed",
+        timing: "anytime",
         start_date: form.startDate,
-        end_date: endDateFor(form),
-        notes: form.notes || null,
-        schedules: form.times.map((time) => ({
-          time_of_day: time,
-          days_of_week: null,
+        end_date: null,
+        notes: null,
+        schedules: form.times.map((schedule) => ({
+          time_of_day: schedule.time,
+          days_of_week: form.daysOfWeek,
           reminder_enabled: form.reminders,
           reminder_offset_minutes: 15,
         })),
@@ -650,35 +828,17 @@ export default function MedicationsPage() {
           <div className="med-context-row">
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <span style={{ fontSize: 12.5, color: "var(--he-ink-3)", fontWeight: 800 }}>Viewing medicines for</span>
-              <div style={{ position: "relative" }}>
-                <select
-                  value={selectedPersonId}
-                  onChange={(e) => setSelectedPersonId(e.target.value)}
-                  style={{
-                    appearance: "none",
-                    height: 38,
-                    minWidth: 180,
-                    border: "1.5px solid #D8F5E4",
-                    borderRadius: 12,
-                    padding: "0 36px 0 13px",
-                    background: "var(--he-green-bg)",
-                    color: "var(--he-green-deep)",
-                    fontFamily: "inherit",
-                    fontSize: 13,
-                    fontWeight: 800,
-                    outline: "none",
-                  }}
-                >
-                  {people.map((person) => (
-                    <option key={person.id} value={person.id}>{person.name} {person.label === "You" ? "(You)" : ""}</option>
-                  ))}
-                </select>
-                <CaretDown size={14} weight="bold" color="var(--he-green-deep)" style={{ position: "absolute", right: 12, top: 12, pointerEvents: "none" }} />
-              </div>
+              <FancySelect
+                value={selectedPersonId}
+                options={selectedPersonOptions}
+                onChange={setSelectedPersonId}
+                tone="green"
+                compact
+              />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 7, color: "var(--he-ink-3)", fontSize: 12.5, fontWeight: 700 }}>
               <Info size={15} weight="bold" />
-              Kids can manage reminders for parents from here.
+              Child can manage reminders for parents from here.
             </div>
           </div>
 
@@ -759,10 +919,12 @@ export default function MedicationsPage() {
                       </div>
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <p style={{ margin: 0, color: "var(--he-ink-1)", fontSize: 15.5, fontWeight: 800 }}>{row.name}</p>
-                        <p style={{ margin: "4px 0 0", color: "var(--he-ink-2)", fontSize: 12.5, fontWeight: 600 }}>{row.dose} &nbsp;•&nbsp; {row.timing}</p>
+                        <p style={{ margin: "4px 0 0", color: "var(--he-ink-2)", fontSize: 12.5, fontWeight: 600 }}>
+                          {row.timing ? `${row.dose} • ${row.timing}` : row.dose}
+                        </p>
                       </div>
                       <span style={{ background: colors.bg, color: colors.text, borderRadius: 99, padding: "7px 12px", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>{row.status}</span>
-                      {row.actionStatus === "taken" ? null : (
+                      {row.canMarkTaken ? (
                         <button
                           onClick={() => markTaken(row)}
                           disabled={markingDoseId === row.id}
@@ -770,7 +932,11 @@ export default function MedicationsPage() {
                         >
                           {markingDoseId === row.id ? "Saving..." : "Mark taken"}
                         </button>
-                      )}
+                      ) : row.actionStatus === "upcoming" ? (
+                        <span style={{ color: "var(--he-ink-3)", fontSize: 12, fontWeight: 800, whiteSpace: "nowrap" }}>
+                          Not due yet
+                        </span>
+                      ) : null}
                       <CaretRight size={18} weight="bold" color="var(--he-ink-3)" />
                     </div>
                   );

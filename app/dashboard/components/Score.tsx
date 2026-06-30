@@ -31,23 +31,78 @@ export function scoreFromAverages(avgSteps: number, avgProtein: number, avgCalor
   return Math.round(stepsPct * 0.4) + Math.round(proteinPct * 0.3) + Math.round(caloriesPct * 0.3);
 }
 
+function scoreGradientId(score: number | null, size: number) {
+  return `score-gradient-${score ?? "empty"}-${size}`;
+}
+
+function scoreGradientStops(tier: ScoreTier) {
+  if (tier.label === "All good") return { from: "#19A85F", to: "#57D68D" };
+  if (tier.label === "Needs attention") return { from: "#F47B20", to: "#FFC15F" };
+  if (tier.label === "Action required") return { from: "#E8415E", to: "#FF8A7A" };
+  return { from: "#9AA0AD", to: "#C5CAD3" };
+}
+
+export function ScoreText({ score, tier, size = "md" }: { score: number | null; tier: ScoreTier; size?: "sm" | "md" | "lg" }) {
+  const scale = size === "lg"
+    ? { numerator: 34, slash: 38, denominator: 25, gap: 6 }
+    : size === "sm"
+    ? { numerator: 16, slash: 18, denominator: 13, gap: 3 }
+    : { numerator: 25, slash: 29, denominator: 20, gap: 5 };
+  const gradient = scoreGradientStops(tier);
+
+  return (
+    <span style={{ display: "inline-flex", alignItems: "baseline", gap: scale.gap, whiteSpace: "nowrap" }}>
+      <span
+        style={{
+          fontSize: scale.numerator,
+          fontWeight: 900,
+          lineHeight: 1,
+          color: tier.ring,
+          background: score === null ? "none" : `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
+          WebkitBackgroundClip: score === null ? undefined : "text",
+          WebkitTextFillColor: score === null ? undefined : "transparent",
+        }}
+      >
+        {score ?? "—"}
+      </span>
+      <span style={{ fontSize: scale.slash, fontWeight: 500, lineHeight: 0.9, color: "#A7ADBA" }}>/</span>
+      <span style={{ fontSize: scale.denominator, fontWeight: 700, lineHeight: 1, color: "#9AA0AD" }}>100</span>
+    </span>
+  );
+}
+
 export function ScoreRing({ score, tier, size = 46 }: { score: number | null; tier: ScoreTier; size?: number }) {
   const r = size / 2 - 4;
   const c = 2 * Math.PI * r;
   const pct = score ?? 0;
+  const gradientId = scoreGradientId(score, size);
+  const isLarge = size >= 100;
+  const gradient = scoreGradientStops(tier);
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={gradient.from} />
+          <stop offset="100%" stopColor={gradient.to} />
+        </linearGradient>
+      </defs>
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={tier.ringBg} strokeWidth={4} />
       <circle
         cx={size / 2} cy={size / 2} r={r} fill="none" stroke={tier.ring} strokeWidth={4}
         strokeLinecap="round" strokeDasharray={`${(pct / 100) * c} ${c}`}
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
       />
-      <text x={size / 2} y={size / 2 - 1} textAnchor="middle" fontSize={size * 0.24} fontWeight={800} fill="#1A2744" fontFamily="'Plus Jakarta Sans', sans-serif">
+      <text
+        x={size / 2}
+        y={isLarge ? size * 0.54 : size * 0.48}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={isLarge ? size * 0.34 : size * 0.26}
+        fontWeight={900}
+        fill={score === null ? "#9AA0AD" : `url(#${gradientId})`}
+        fontFamily="'Plus Jakarta Sans', sans-serif"
+      >
         {score ?? "—"}
-      </text>
-      <text x={size / 2} y={size / 2 + size * 0.17} textAnchor="middle" fontSize={size * 0.13} fill="#9AA0AD" fontFamily="'Plus Jakarta Sans', sans-serif">
-        /100
       </text>
     </svg>
   );

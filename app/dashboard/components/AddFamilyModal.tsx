@@ -106,7 +106,7 @@ export default function AddFamilyModal({ onClose, onAdded, onActivated }: Props)
         <button onClick={onClose} style={{ ...closeBtnStyle, display: "flex", alignItems: "center", justifyContent: "center" }}><X size={15} weight="bold" /></button>
 
         {/* Progress */}
-        <div style={{ display: "flex", gap: 5, marginBottom: 28 }}>
+        <div style={{ display: "flex", gap: 5, marginBottom: 28, paddingRight: 64 }}>
           {[0, 1, 2].map(i => (
             <div key={i} style={{
               flex: 1, height: 4, borderRadius: 4,

@@ -431,7 +431,7 @@ export function logsToWeeklyMetric(
   logs: HealthLog[],
   metric: "steps" | "protein_g" | "calories" | "sleep_hours"
 ): { label: string; value: number }[] {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   // Build a map: YYYY-MM-DD → metric value (sleep replaces, others accumulate)
   const byDate: Record<string, number> = {};
   for (const l of logs) {
