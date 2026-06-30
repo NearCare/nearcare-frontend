@@ -2,37 +2,43 @@ import type { MetadataRoute } from "next";
 
 const siteUrl = "https://famcarehealth.com";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
+const lastModified = {
+  home: new Date("2026-06-30"),
+  privacy: new Date("2026-06-30"),
+  medicineRemindersForParents: new Date("2026-06-30"),
+  whatsappMedicineReminders: new Date("2026-06-30"),
+  elderlyParentCareApp: new Date("2026-06-30"),
+};
 
+export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: siteUrl,
-      lastModified: now,
+      lastModified: lastModified.home,
       changeFrequency: "weekly",
       priority: 1,
     },
     {
       url: `${siteUrl}/privacy`,
-      lastModified: now,
+      lastModified: lastModified.privacy,
       changeFrequency: "monthly",
       priority: 0.5,
     },
     {
       url: `${siteUrl}/medicine-reminders-for-parents`,
-      lastModified: now,
+      lastModified: lastModified.medicineRemindersForParents,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
       url: `${siteUrl}/whatsapp-medicine-reminders`,
-      lastModified: now,
+      lastModified: lastModified.whatsappMedicineReminders,
       changeFrequency: "weekly",
       priority: 0.85,
     },
     {
       url: `${siteUrl}/elderly-parent-care-app`,
-      lastModified: now,
+      lastModified: lastModified.elderlyParentCareApp,
       changeFrequency: "weekly",
       priority: 0.8,
     },

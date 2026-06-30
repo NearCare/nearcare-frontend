@@ -690,10 +690,6 @@ export default function DashboardPage() {
   const prevWeekAvgs = useMemo(() => rangeAverages(logs, 7, 13), [logs]);
   const prevWeekScore = prevWeekAvgs ? scoreFromAverages(prevWeekAvgs.steps, prevWeekAvgs.protein, prevWeekAvgs.calories) : null;
   const scoreDelta = personalScore !== null && prevWeekScore !== null ? personalScore - prevWeekScore : null;
-  const proteinDeltaPct = prevWeekAvgs && prevWeekAvgs.protein > 0
-    ? Math.round(((proteinAvg - prevWeekAvgs.protein) / prevWeekAvgs.protein) * 100)
-    : null;
-
   const daysLoggedThisWeek = useMemo(() => {
     const last7Dates = Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
@@ -710,24 +706,7 @@ export default function DashboardPage() {
     ? "Keep logging to build your streak."
     : "Start logging today to see your trends.";
 
-  const daysGoalMet = goalSteps ? weeklySteps.filter((d) => d.value >= goalSteps).length : 0;
   const bestDay = weeklySteps.reduce((best, d) => (d.value > best.value ? d : best), weeklySteps[0] ?? { label: "—", value: 0 });
-  const weeklyCalorieTotal = Math.round(caloriesAvg * 7);
-
-  const weeklyInsights: { icon: React.ReactNode; text: string }[] = [];
-  if (daysGoalMet > 0) {
-    weeklyInsights.push({ icon: <TrendUp size={15} weight="bold" color="var(--he-green-deep)" />, text: `Great job! You hit your step goal ${daysGoalMet} of 7 days.` });
-  }
-  if (proteinDeltaPct !== null && proteinDeltaPct !== 0) {
-    weeklyInsights.push({ icon: <FEMeat size={15} />, text: `Protein intake ${proteinDeltaPct > 0 ? "improved" : "dropped"} by ${Math.abs(proteinDeltaPct)}% this week.` });
-  }
-  if (weeklyCalorieTotal > 0) {
-    weeklyInsights.push({ icon: <FEFlame size={15} />, text: `You logged ~${weeklyCalorieTotal.toLocaleString()} kcal this week.` });
-  }
-  weeklyInsights.push({ icon: <FEMoon size={15} />, text: "Sleep tracking is coming soon." });
-  if (weeklyInsights.length === 1) {
-    weeklyInsights.unshift({ icon: <Warning size={15} weight="bold" color="var(--he-orange-deep)" />, text: "No health data logged yet this week." });
-  }
 
   const motivCopy = personalTier.label === "All good"
     ? { title: "Keep it up!", message: "You're doing great this week. Stay consistent and crush your goals!" }
@@ -1077,8 +1056,8 @@ export default function DashboardPage() {
         </div>
         </div>
 
-        <div style={{ display: "flex", gap: 16, alignItems: "stretch", flexWrap: "wrap" }}>
-          <div className="db-card" style={{ flex: "1 1 0", minWidth: 380, padding: "24px 26px 22px", position: "relative", overflow: "hidden" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 3fr) minmax(420px, 2fr)", gap: 16, alignItems: "stretch" }}>
+          <div className="db-card" style={{ minWidth: 0, padding: "24px 26px 22px", position: "relative", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 22 }}>
               <span style={{ fontSize: 17, fontWeight: 800, color: "#1A2744", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Your Weekly Score</span>
               <div ref={scoreInfoRef} style={{ position: "relative", display: "flex" }}>
@@ -1180,7 +1159,7 @@ export default function DashboardPage() {
 
             <div style={{ height: 1, background: "var(--he-hairline)", margin: "22px 0" }} />
 
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.35fr) minmax(280px, .9fr)", gap: 18 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 18 }}>
               <div style={{ border: "1px solid var(--he-card-border)", borderRadius: 20, padding: "20px 22px", background: "#fff", boxShadow: "0 10px 26px rgba(31,28,35,.04)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 22 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
@@ -1226,33 +1205,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div style={{ border: "1px solid var(--he-card-border)", borderRadius: 20, padding: "20px 20px", background: "#fff", boxShadow: "0 10px 26px rgba(31,28,35,.04)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 18 }}>
-                  <span style={{ width: 48, height: 48, borderRadius: 16, background: "var(--he-orange-bg)", display: "grid", placeItems: "center", flex: "none" }}>
-                    <Sparkle size={24} weight="bold" color="var(--he-orange-deep)" />
-                  </span>
-                  <span>
-                    <span style={{ display: "block", color: "#1A2744", fontSize: 20, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: "-.3px" }}>Weekly Insights</span>
-                    <span style={{ display: "block", color: "#7C84A8", fontSize: 13.5, fontWeight: 700, marginTop: 2 }}>AI insights from your data</span>
-                  </span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {weeklyInsights.slice(0, 3).map((ins, i) => {
-                    const accents = [
-                      { bg: "var(--he-coral-bg)", line: "#FFC9C9" },
-                      { bg: "var(--he-orange-bg)", line: "#FFD8AC" },
-                      { bg: "var(--he-violet-bg)", line: "#DED8FF" },
-                    ][i] ?? { bg: "var(--he-blue-bg)", line: "#D4E8FF" };
-                    return (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 13, border: "1px solid #F0EEF5", borderRadius: 16, background: "#fff", padding: "12px 13px", boxShadow: "0 8px 18px rgba(31,28,35,.035)" }}>
-                        <span style={{ width: 40, height: 40, borderRadius: "50%", background: accents.bg, display: "grid", placeItems: "center", flex: "none" }}>{ins.icon}</span>
-                        <span style={{ width: 4, alignSelf: "stretch", borderRadius: 999, background: accents.line }} />
-                        <span style={{ color: "#1A2744", fontSize: 13.5, fontWeight: 750, lineHeight: 1.45 }}>{ins.text}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
 
             <div style={{
@@ -1282,7 +1234,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div style={{ flex: "1 1 0", minWidth: 300, display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, alignContent: "start" }}>
+          <div style={{ minWidth: 0, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10, alignContent: "start" }}>
               <MetricTile
                 icon={<FEMeat size={16} />} label="Protein today"
                 color="var(--he-coral)" deepColor="var(--he-coral-deep)" chipBg="var(--he-coral-bg-2)" stripBg="var(--he-coral-bg)"
