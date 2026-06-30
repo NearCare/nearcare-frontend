@@ -22,9 +22,51 @@ const RANK_PALETTE = [
 ];
 
 function EstimateInfo() {
+  const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const visible = open || hovered;
+
   return (
-    <span title="Estimated from meal messages. Values are approximate." style={{ display: "inline-flex", cursor: "help", color: "#9AA0AD" }}>
+    <span
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={(event) => {
+        event.stopPropagation();
+        setOpen((current) => !current);
+      }}
+      onBlur={() => setOpen(false)}
+      style={{ display: "inline-flex", position: "relative", cursor: "help", color: "#9AA0AD" }}
+      tabIndex={0}
+      role="button"
+      aria-label="Nutrition estimate info"
+    >
       <Info size={11} weight="bold" />
+      {visible && (
+        <span style={{
+          position: "absolute",
+          top: "calc(100% + 8px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 210,
+          background: "#1A2744",
+          color: "#fff",
+          borderRadius: 12,
+          padding: "10px 12px",
+          zIndex: 80,
+          boxShadow: "0 8px 28px rgba(26,20,20,.22)",
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontSize: 11,
+          fontWeight: 700,
+          lineHeight: 1.45,
+          whiteSpace: "normal",
+          pointerEvents: "none",
+        }}>
+          <span style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 12, height: 6, overflow: "hidden" }}>
+            <span style={{ display: "block", width: 10, height: 10, background: "#1A2744", transform: "rotate(45deg)", margin: "3px auto 0" }} />
+          </span>
+          Estimated from meal messages. Values are approximate.
+        </span>
+      )}
     </span>
   );
 }

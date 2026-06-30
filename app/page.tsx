@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import {
   House, TrendUp, ForkKnife, Lightning, ClipboardText, Trophy,
   Bell, Gear, CalendarBlank, Fire, Lock, MapPin, Users,
@@ -70,9 +71,51 @@ const structuredData = {
 };
 
 function EstimateInfo({ size = 8 }: { size?: number }) {
+  const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const visible = open || hovered;
+
   return (
-    <span title="Estimated from meal messages. Values are approximate." style={{ display: "inline-flex", cursor: "help", color: "#9AA0AD" }}>
+    <span
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={(event) => {
+        event.stopPropagation();
+        setOpen((current) => !current);
+      }}
+      onBlur={() => setOpen(false)}
+      style={{ display: "inline-flex", position: "relative", cursor: "help", color: "#9AA0AD" }}
+      tabIndex={0}
+      role="button"
+      aria-label="Nutrition estimate info"
+    >
       <Info size={size} weight="bold" />
+      {visible && (
+        <span style={{
+          position: "absolute",
+          top: "calc(100% + 6px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 170,
+          background: "#1A2744",
+          color: "#fff",
+          borderRadius: 9,
+          padding: "7px 8px",
+          zIndex: 80,
+          boxShadow: "0 8px 22px rgba(26,20,20,.22)",
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontSize: 8.5,
+          fontWeight: 700,
+          lineHeight: 1.35,
+          whiteSpace: "normal",
+          pointerEvents: "none",
+        }}>
+          <span style={{ position: "absolute", top: -5, left: "50%", transform: "translateX(-50%)", width: 10, height: 5, overflow: "hidden" }}>
+            <span style={{ display: "block", width: 8, height: 8, background: "#1A2744", transform: "rotate(45deg)", margin: "3px auto 0" }} />
+          </span>
+          Estimated from meal messages. Values are approximate.
+        </span>
+      )}
     </span>
   );
 }
