@@ -1,12 +1,22 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip as ReTooltip,
   ResponsiveContainer, Cell,
 } from "recharts";
-import { X, ChartBar, ClipboardText, Scroll, Info } from "@phosphor-icons/react";
+import { X, ChartBar, ClipboardText, Scroll, Info, Pill, CalendarCheck, CaretRight } from "@phosphor-icons/react";
 import { FEShoe, FEMeat, FEWheat } from "./FluentEmoji";
-import { getMemberLogs, logsToWeeklyMetric, type FamilyMember, type HealthLog } from "@/lib/api";
+import {
+  getMemberLogs,
+  getMedicines,
+  getTodayMedicineDoses,
+  logsToWeeklyMetric,
+  type FamilyMember,
+  type HealthLog,
+  type Medicine,
+  type TodayDose,
+} from "@/lib/api";
 
 interface Props {
   member: FamilyMember;
@@ -109,13 +119,30 @@ function EstimateInfo() {
 
 export default function FamilyMemberModal({ member, onClose }: Props) {
   const [logs, setLogs] = useState<HealthLog[]>([]);
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [todayDoses, setTodayDoses] = useState<TodayDose[]>([]);
   const [loading, setLoading] = useState(true);
+  const [medicationLoading, setMedicationLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("auth_token") ?? "";
     getMemberLogs(member.id, token, 7)
       .then(setLogs)
       .finally(() => setLoading(false));
+  }, [member.id]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token") ?? "";
+    setMedicationLoading(true);
+    Promise.all([
+      getMedicines(member.id, token).catch(() => [] as Medicine[]),
+      getTodayMedicineDoses(member.id, token).catch(() => [] as TodayDose[]),
+    ])
+      .then(([nextMedicines, nextDoses]) => {
+        setMedicines(nextMedicines);
+        setTodayDoses(nextDoses);
+      })
+      .finally(() => setMedicationLoading(false));
   }, [member.id]);
 
   const weeklySteps = logsToWeeklyMetric(logs, "steps");
@@ -129,6 +156,9 @@ export default function FamilyMemberModal({ member, onClose }: Props) {
   const todayStepPct = Math.min(Math.round((todaySteps / 10000) * 100), 100);
   const todayProteinPct = Math.min(Math.round((todayProtein / 50) * 100), 100);
   const todayCaloriesPct = Math.min(Math.round((todayCalories / 2000) * 100), 100);
+  const activeMedicines = medicines.filter((medicine) => medicine.is_active);
+  const takenDoses = todayDoses.filter((dose) => dose.status === "taken");
+  const medicationHref = `/dashboard/medications?person=member-${member.id}`;
 
   const avatarLetter = (member.name ?? member.label).charAt(0).toUpperCase();
 
@@ -270,6 +300,96 @@ export default function FamilyMemberModal({ member, onClose }: Props) {
               </div>
             ) : (
               <p style={{ fontSize: 13, color: "#9AA0AD", margin: 0 }}>Nothing logged today yet.</p>
+            )}
+          </div>
+
+          {/* Medication summary */}
+          <div style={{ background: "#FAFAFA", borderRadius: 16, padding: "16px 18px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 800, color: "#2C2F3A", fontFamily: "'Plus Jakarta Sans', sans-serif", display: "flex", alignItems: "center", gap: 7 }}>
+                <Pill size={15} weight="bold" color="#FF6B6B" /> Medications
+              </div>
+              <Link
+                href={medicationHref}
+                onClick={onClose}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  color: "#E85C5C",
+                  textDecoration: "none",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}
+              >
+                Manage <CaretRight size={13} weight="bold" />
+              </Link>
+            </div>
+
+            {medicationLoading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <Skel h={14} /><Skel h={14} w="75%" />
+              </div>
+            ) : activeMedicines.length ? (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 12 }}>
+                  {[
+                    { label: "Active", value: activeMedicines.length, color: "#20A865", bg: "#EAFBF0" },
+                    { label: "Doses today", value: todayDoses.length, color: "#7C6FF7", bg: "#F0EEFF" },
+                    { label: "Taken", value: takenDoses.length, color: "#4F9BF5", bg: "#EBF3FF" },
+                  ].map((item) => (
+                    <div key={item.label} style={{ borderRadius: 12, background: item.bg, padding: "10px 11px" }}>
+                      <p style={{ margin: 0, color: item.color, fontSize: 18, fontWeight: 900, lineHeight: 1 }}>{item.value}</p>
+                      <p style={{ margin: "5px 0 0", color: "#7A8099", fontSize: 10.5, fontWeight: 700 }}>{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+                {todayDoses.length ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {todayDoses.slice(0, 3).map((dose) => {
+                      const statusColor = dose.status === "taken" ? "#20A865" : dose.status === "due" ? "#FF8A1F" : "#7C84A8";
+                      return (
+                        <div key={dose.id} style={{ display: "flex", alignItems: "center", gap: 10, border: "1px solid #F0EEF5", borderRadius: 12, padding: "9px 10px", background: "#fff" }}>
+                          <CalendarCheck size={18} weight="bold" color="#7C6FF7" />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: "#2C2F3A", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {dose.medicine.name}{dose.medicine.strength ? ` ${dose.medicine.strength}` : ""}
+                            </p>
+                            <p style={{ margin: "2px 0 0", color: "#9AA0AD", fontSize: 11, fontWeight: 700 }}>{dose.schedule.time_of_day}</p>
+                          </div>
+                          <span style={{ color: statusColor, background: "#FAFAFA", borderRadius: 999, padding: "5px 8px", fontSize: 10.5, fontWeight: 800, textTransform: "capitalize" }}>
+                            {dose.status}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: 12.5, color: "#9AA0AD", margin: 0 }}>No doses scheduled for today.</p>
+                )}
+              </>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <p style={{ fontSize: 12.5, color: "#9AA0AD", margin: 0 }}>No medicines added yet.</p>
+                <Link
+                  href={medicationHref}
+                  onClick={onClose}
+                  style={{
+                    border: "none",
+                    borderRadius: 999,
+                    background: "#FFF1F0",
+                    color: "#E85C5C",
+                    padding: "8px 11px",
+                    textDecoration: "none",
+                    fontSize: 11.5,
+                    fontWeight: 800,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Add medicine
+                </Link>
+              </div>
             )}
           </div>
 

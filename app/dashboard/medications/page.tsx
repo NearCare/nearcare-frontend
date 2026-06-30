@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Bell,
   CalendarBlank,
@@ -610,6 +611,16 @@ function StatCard({
 }
 
 export default function MedicationsPage() {
+  return (
+    <Suspense fallback={null}>
+      <MedicationsContent />
+    </Suspense>
+  );
+}
+
+function MedicationsContent() {
+  const searchParams = useSearchParams();
+  const requestedPersonId = searchParams.get("person");
   const [user, setUser] = useState<User | null>(null);
   const [people, setPeople] = useState<PersonOption[]>([]);
   const [selectedPersonId, setSelectedPersonId] = useState("self");
@@ -647,9 +658,9 @@ export default function MedicationsPage() {
           })),
       ];
       setPeople(options);
-      setSelectedPersonId(options[0]?.id ?? "self");
+      setSelectedPersonId(options.some((option) => option.id === requestedPersonId) ? requestedPersonId! : options[0]?.id ?? "self");
     })();
-  }, []);
+  }, [requestedPersonId]);
 
   useEffect(() => {
     let cancelled = false;
